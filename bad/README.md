@@ -1,0 +1,1 @@
+Cartella per soluzioni Power Apps
