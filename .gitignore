@@ -1,0 +1,18 @@
+# Sistema operativo ed editor
+.DS_Store
+Thumbs.db
+~$*
+.idea/
+.vscode/
+
+# Segreti e configurazioni locali
+.env
+.env.*
+*.pem
+*.key
+
+# Build e dipendenze (future)
+target/
+node_modules/
+dist/
+*.log
