@@ -13,6 +13,7 @@ Questo progetto è formativo: Factory Studios (cliente fittizio) organizza ARCAD
 | [03-lavoro-futuro.md](03-lavoro-futuro.md) | **Cosa resta da fare**, in ordine, con scadenze e responsabilità BID/BAD | Per pianificare |
 | [04-domande-cliente.md](04-domande-cliente.md) | **Domande per il cliente** al kickoff, ordinate per priorità, con assunzioni di lavoro | Per preparare la riunione |
 | [data-model.md](data-model.md) | Progettazione tecnica completa del modello dati (tabelle, KPI, sicurezza, domande al cliente) | Documento di riferimento |
+| [05-ingestione-dati-2024-2025.md](05-ingestione-dati-2024-2025.md) | Pipeline e controlli prima del caricamento di biglietteria, tornelli e visite | Per importare i dati reali |
 | [../divisione-bid-bad-integrazione.md](../divisione-bid-bad-integrazione.md) | Chi fa cosa (BID/BAD) e come si collegano Power Apps, Java, Angular e database | Per il coordinamento tra i due team |
 
 ## Stato in una riga

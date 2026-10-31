@@ -64,6 +64,7 @@ docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V1__co
 docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V2__reference_data.sql
 docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V3__roles_grants_rls.sql
 docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V4__analytics.sql
+docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V5__ingest_ticketing_turnstiles_stand_visits.sql
 ```
 
 Se un comando stampa un errore, si ferma subito (è voluto).
@@ -82,6 +83,12 @@ I test creano dati di prova (non del cliente). Eseguili su un database **appena 
 
 ```bash
 docker exec -i arcade-db psql -U postgres -d arcade -q < database/tests/kpi_rls_smoke.sql
+```
+
+Dopo aver applicato anche V5, il controllo minimo della pipeline e':
+
+```bash
+docker exec -i arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -q < database/tests/ingest_smoke.sql
 ```
 
 Come leggere l'output: ogni blocco ha una riga `atteso ...` con il risultato corretto. Per `constraints_smoke.sql`, le righe `ERROR:` sono **volute**: dimostrano che il database ha bloccato l'operazione vietata.
