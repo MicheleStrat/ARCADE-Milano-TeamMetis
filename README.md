@@ -12,7 +12,7 @@ Questo ramo contiene l'area **BID**: database PostgreSQL, (in futuro) backend Ja
 | Dati di riferimento e regole di qualità | **Scritti** (V2) |
 | Ruoli, grant e Row Level Security | **Scritti e provati** in SQL |
 | Schemi `analytics` e `portal` (KPI) | **Scritti e provati** con dati di prova |
-| ETL / caricamento dei file del cliente | **Da fare** |
+| ETL biglietteria e tornelli 2024/2025 | **Verificato sui file reali** (visite stand solo con dati di prova) |
 | Backend Spring Boot e contratto API | **Da fare** |
 | Frontend Angular (dashboard staff, portale espositori, scansione stand) | **Da fare** |
 | Integrazione con Power Apps / Power BI | **Da configurare** (dipende da tenant e licenze Microsoft) |
@@ -53,6 +53,7 @@ docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V1__co
 docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V2__reference_data.sql
 docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V3__roles_grants_rls.sql
 docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V4__analytics.sql
+docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V5__ingest_ticketing_turnstiles_stand_visits.sql
 ```
 
 La password `test` serve **solo** per prove locali con un database usa e getta. Nel repository non ci sono password, token o segreti: gli account di login dei ruoli del database si creano per ambiente.

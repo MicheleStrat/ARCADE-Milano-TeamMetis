@@ -7,8 +7,9 @@ Artefatti collegati:
 - [database/migrations/V2__reference_data.sql](../database/migrations/V2__reference_data.sql) — dati di riferimento (lookup), regole DQ, controlli di riconciliazione
 - [database/migrations/V3__roles_grants_rls.sql](../database/migrations/V3__roles_grants_rls.sql) — ruoli, grant, Row Level Security per il portale espositori
 - [database/migrations/V4__analytics.sql](../database/migrations/V4__analytics.sql) — schemi `analytics` (stella + KPI) e `portal` (viste per gli espositori)
+- [database/migrations/V5__ingest_ticketing_turnstiles_stand_visits.sql](../database/migrations/V5__ingest_ticketing_turnstiles_stand_visits.sql) — ingestione controllata e report di qualità
 
-> **Stato reale**: V1–V4 sono stati eseguiti in sequenza su PostgreSQL 16 (Docker `postgres:16-alpine`) senza errori, e sono stati eseguiti test su vincoli, KPI, RLS e permessi con **dati sintetici scritti per il test** (§9). Nessun dato del cliente è ancora stato caricato: l'ETL **non esiste ancora**. Le cifre del §2 derivano da un profiling dei file ricevuti, non da un caricamento. I valori dei KPI su dati reali sono quindi **sconosciuti**.
+> **Stato reale**: V1–V4 sono stati eseguiti in sequenza su PostgreSQL 16 (Docker `postgres:16-alpine`) senza errori, e sono stati eseguiti test su vincoli, KPI, RLS e permessi con **dati sintetici scritti per il test** (§9). V5 aggiunge la pipeline di ingestione controllata per biglietteria, tornelli e visite stand; deve ancora essere eseguita e verificata sui file reali. Nessun dato del cliente è stato caricato e i valori dei KPI reali restano **sconosciuti**.
 
 ---
 
