@@ -1,0 +1,2810 @@
+openapi: 3.0.3
+info:
+  title: ARCADE Milano API
+  version: 1.0.0-draft
+  description: |
+    Contratto API condiviso tra BID e BAD. **BOZZA: non ancora congelata e non ancora implementata.**
+    Nessun endpoint di questo file esiste oggi nel backend.
+
+    Convenzioni principali (dettagli in `docs/api/README.md`):
+    - Base `/api/v1`. Date `YYYY-MM-DD`; istanti in UTC (`...Z`). Importi in euro, IVA esclusa, due decimali.
+    - L'autorizzazione e' sempre decisa dal server in base al token (ruoli in `x-roles`); il client non e' mai fidato.
+    - Errori nel formato `application/problem+json` con un `code` stabile.
+    - Le POST che creano contratti, pagamenti o dati acquisiti richiedono l'header `Idempotency-Key`.
+    - Le misure di visitatori sono distinte (venduti, validati, passaggi, ingressi-giorno) e le presenze sono sempre STIMATE.
+  contact:
+    name: Team BID
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Sviluppo locale
+security:
+  - bearerAuth: []
+tags:
+  - name: Sistema
+  - name: Anagrafiche
+  - name: Espositori
+  - name: Preventivi
+  - name: Contratti
+  - name: Pagamenti
+  - name: Sponsorizzazioni
+  - name: Prelazioni
+  - name: Acquisizione dati
+  - name: Operativo
+  - name: KPI
+  - name: Importazioni e qualita
+  - name: Portale espositore
+
+paths:
+  /health:
+    get:
+      tags: [Sistema]
+      operationId: getHealth
+      summary: Stato del servizio
+      security: []
+      x-roles: [PUBLIC]
+      responses:
+        '200':
+          description: Servizio attivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /me:
+    get:
+      tags: [Sistema]
+      operationId: getCurrentUser
+      summary: Utente corrente e ruoli
+      x-roles: [ADMIN, COMMERCIAL, OPS, EXHIBITOR, SCANNER, BI_READER]
+      responses:
+        '200':
+          description: Utente autenticato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /editions:
+    get:
+      tags: [Anagrafiche]
+      operationId: listEditions
+      summary: Elenco edizioni
+      x-roles: [ADMIN, COMMERCIAL, OPS, EXHIBITOR]
+      responses:
+        '200':
+          description: Edizioni ordinate per anno
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Edition'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /editions/{editionId}:
+    get:
+      tags: [Anagrafiche]
+      operationId: getEdition
+      summary: Dettaglio edizione con giorni di apertura
+      x-roles: [ADMIN, COMMERCIAL, OPS, EXHIBITOR]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdPath'
+      responses:
+        '200':
+          description: Edizione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edition'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /pavilions:
+    get:
+      tags: [Anagrafiche]
+      operationId: listPavilions
+      summary: Elenco padiglioni
+      x-roles: [ADMIN, COMMERCIAL, OPS, EXHIBITOR]
+      responses:
+        '200':
+          description: Padiglioni
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pavilion'
+  /exhibitor-categories:
+    get:
+      tags: [Anagrafiche]
+      operationId: listExhibitorCategories
+      summary: Categorie di espositore
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      responses:
+        '200':
+          description: Categorie
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExhibitorCategory'
+  /editions/{editionId}/floorplan:
+    get:
+      tags: [Anagrafiche]
+      operationId: getFloorplan
+      summary: Planimetria dell'edizione con stato commerciale degli stand
+      description: |
+        Stand raggruppati per padiglione. Le coordinate (`geometry`) sono `null` finche' il cliente non fornisce la planimetria.
+        Lo `exhibitor` e' valorizzato solo per ADMIN e COMMERCIAL; agli altri ruoli il server lo omette.
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdPath'
+      responses:
+        '200':
+          description: Planimetria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Floorplan'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /editions/{editionId}/stands:
+    get:
+      tags: [Anagrafiche]
+      operationId: listStands
+      summary: Stand dell'edizione, filtrabili
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdPath'
+        - name: pavilionCode
+          in: query
+          schema:
+            type: string
+            example: P1
+        - name: commercialStatus
+          in: query
+          schema:
+            $ref: '#/components/schemas/StandStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Pagina di stand
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandEditionPage'
+  /editions/{editionId}/price-list:
+    get:
+      tags: [Anagrafiche]
+      operationId: getPriceList
+      summary: Listino dell'edizione
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdPath'
+      responses:
+        '200':
+          description: Listino con voci e condizioni
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /price-items/{priceItemId}:
+    patch:
+      tags: [Anagrafiche]
+      operationId: updatePriceItem
+      summary: Modifica una voce di listino
+      description: Solo listini non ancora usati da contratti firmati. L'operazione e' registrata nell'audit.
+      x-roles: [ADMIN]
+      parameters:
+        - name: priceItemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceItemUpdate'
+      responses:
+        '200':
+          description: Voce aggiornata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+
+  /exhibitors:
+    get:
+      tags: [Espositori]
+      operationId: listExhibitors
+      summary: Elenco espositori
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      parameters:
+        - name: q
+          in: query
+          description: Ricerca su ragione sociale o codice
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: editionId
+          in: query
+          description: Se presente, solo gli espositori con contratto firmato in quell'edizione
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Pagina di espositori
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExhibitorPage'
+    post:
+      tags: [Espositori]
+      operationId: createExhibitor
+      summary: Crea un espositore
+      x-roles: [ADMIN, COMMERCIAL]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExhibitorInput'
+      responses:
+        '201':
+          description: Espositore creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exhibitor'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /exhibitors/{exhibitorId}:
+    parameters:
+      - $ref: '#/components/parameters/ExhibitorIdPath'
+    get:
+      tags: [Espositori]
+      operationId: getExhibitor
+      summary: Dettaglio espositore
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      responses:
+        '200':
+          description: Espositore
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exhibitor'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Espositori]
+      operationId: updateExhibitor
+      summary: Aggiorna un espositore
+      x-roles: [ADMIN, COMMERCIAL]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExhibitorInput'
+      responses:
+        '200':
+          description: Espositore aggiornato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exhibitor'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /exhibitors/{exhibitorId}/report:
+    get:
+      tags: [Espositori]
+      operationId: getExhibitorReport
+      summary: Report individuale dell'espositore (vista staff)
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/ExhibitorIdPath'
+        - name: editionId
+          in: query
+          description: Se assente, tutte le edizioni
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExhibitorReport'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /quotes:
+    get:
+      tags: [Preventivi]
+      operationId: listQuotes
+      summary: Elenco preventivi
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - name: editionId
+          in: query
+          schema:
+            type: integer
+        - name: exhibitorId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/QuoteStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Pagina di preventivi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotePage'
+    post:
+      tags: [Preventivi]
+      operationId: createQuote
+      summary: Crea un preventivo in bozza
+      description: |
+        Il server calcola prezzi, maggiorazioni (angolo/penisola/isola), sconto e totali dal listino dell'edizione:
+        i prezzi inviati dal client NON sono accettati. Gli stand indicati passano a `RESERVED` con scadenza.
+        Se uno stand non e' disponibile: `409 STAND_ALREADY_RESERVED` o `STAND_ALREADY_SOLD`.
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteCreate'
+      responses:
+        '201':
+          description: Preventivo creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /quotes/{quoteId}:
+    get:
+      tags: [Preventivi]
+      operationId: getQuote
+      summary: Dettaglio preventivo
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/QuoteIdPath'
+      responses:
+        '200':
+          description: Preventivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /quotes/{quoteId}/send:
+    post:
+      tags: [Preventivi]
+      operationId: sendQuote
+      summary: Segna il preventivo come inviato (DRAFT -> SENT)
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/QuoteIdPath'
+        - $ref: '#/components/parameters/RowVersionHeader'
+      responses:
+        '200':
+          description: Preventivo aggiornato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /quotes/{quoteId}/confirm:
+    post:
+      tags: [Preventivi]
+      operationId: confirmQuote
+      summary: Conferma il preventivo (SENT -> CONFIRMED)
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/QuoteIdPath'
+        - $ref: '#/components/parameters/RowVersionHeader'
+      responses:
+        '200':
+          description: Preventivo confermato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /quotes/{quoteId}/reject:
+    post:
+      tags: [Preventivi]
+      operationId: rejectQuote
+      summary: Rifiuta o annulla il preventivo e libera gli stand riservati
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/QuoteIdPath'
+        - $ref: '#/components/parameters/RowVersionHeader'
+      responses:
+        '200':
+          description: Preventivo rifiutato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /quotes/{quoteId}/contract:
+    post:
+      tags: [Preventivi]
+      operationId: convertQuoteToContract
+      summary: Converte un preventivo confermato in contratto
+      description: |
+        Operazione transazionale: assegna gli stand (un solo contratto attivo per stand ed edizione), crea le righe,
+        il piano di pagamento (acconto e saldo) e imposta gli stand a `SOLD`.
+        Con la stessa `Idempotency-Key` la risposta e' quella della prima chiamata.
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/QuoteIdPath'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractFromQuote'
+      responses:
+        '201':
+          description: Contratto creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+
+  /contracts:
+    get:
+      tags: [Contratti]
+      operationId: listContracts
+      summary: Elenco contratti
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      parameters:
+        - name: editionId
+          in: query
+          schema:
+            type: integer
+        - name: exhibitorId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ContractStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Pagina di contratti
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractPage'
+  /contracts/{contractId}:
+    get:
+      tags: [Contratti]
+      operationId: getContract
+      summary: Dettaglio contratto con stand, righe e pagamenti
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      parameters:
+        - $ref: '#/components/parameters/ContractIdPath'
+      responses:
+        '200':
+          description: Contratto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /contracts/{contractId}/cancel:
+    post:
+      tags: [Contratti]
+      operationId: cancelContract
+      summary: Annulla il contratto e libera gli stand
+      description: Gli stand tornano disponibili. I pagamenti gia' incassati restano registrati, e i rimborsi sono pagamenti di tipo REFUND.
+      x-roles: [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/ContractIdPath'
+        - $ref: '#/components/parameters/RowVersionHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractCancel'
+      responses:
+        '200':
+          description: Contratto annullato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /contracts/{contractId}/payments:
+    parameters:
+      - $ref: '#/components/parameters/ContractIdPath'
+    get:
+      tags: [Pagamenti]
+      operationId: listContractPayments
+      summary: Piano e stato dei pagamenti del contratto
+      x-roles: [ADMIN, COMMERCIAL]
+      responses:
+        '200':
+          description: Pagamenti
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Pagamenti]
+      operationId: registerPayment
+      summary: Registra un pagamento (acconto, saldo o rimborso)
+      description: |
+        Acconto e saldo aggiornano la riga gia' prevista dal piano; il rimborso crea una nuova riga.
+        La somma incassata non puo' superare il valore netto del contratto (`422 PAYMENT_EXCEEDS_CONTRACT`).
+        Un pagamento e' un incasso, NON un ricavo aggiuntivo.
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+      responses:
+        '201':
+          description: Pagamento registrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+
+  /sponsorships:
+    get:
+      tags: [Sponsorizzazioni]
+      operationId: listSponsorships
+      summary: Sponsorizzazioni vendute
+      x-roles: [ADMIN, COMMERCIAL, OPS]
+      parameters:
+        - name: editionId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/SponsorshipStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Pagina di sponsorizzazioni
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SponsorshipPage'
+  /sponsorships/{sponsorshipId}:
+    patch:
+      tags: [Sponsorizzazioni]
+      operationId: updateSponsorship
+      summary: Aggiorna lo stato di esecuzione di una sponsorizzazione
+      description: Non modifica gli importi, perché il valore economico resta nella riga contratto.
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - name: sponsorshipId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SponsorshipUpdate'
+      responses:
+        '200':
+          description: Sponsorizzazione aggiornata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sponsorship'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pre-emptions:
+    get:
+      tags: [Prelazioni]
+      operationId: listPreemptions
+      summary: Diritti di prelazione
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - name: forEditionId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PreemptionStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Pagina di prelazioni
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreemptionPage'
+  /pre-emptions/{preemptionId}/exercise:
+    post:
+      tags: [Prelazioni]
+      operationId: exercisePreemption
+      summary: Esercita la prelazione
+      description: Crea un preventivo in bozza sullo stesso stand per l'edizione successiva, se la scadenza non e' passata (`422 PREEMPTION_EXPIRED`).
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/PreemptionIdPath'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '201':
+          description: Preventivo in bozza creato dalla prelazione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /pre-emptions/{preemptionId}/waive:
+    post:
+      tags: [Prelazioni]
+      operationId: waivePreemption
+      summary: Registra la rinuncia alla prelazione
+      x-roles: [ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/PreemptionIdPath'
+      responses:
+        '200':
+          description: Prelazione aggiornata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preemption'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /ingest/gate-readings:
+    post:
+      tags: [Acquisizione dati]
+      operationId: ingestGateReadings
+      summary: Acquisisce un blocco di letture ai tornelli
+      description: |
+        Massimo 1000 letture per chiamata. Ogni lettura ha una `sourceRowKey` univoca per sorgente:
+        le letture gia' ricevute sono contate come duplicate, non reinserite. Codici biglietto sconosciuti
+        vengono caricati e segnalati come anomalia, mai scartati.
+      x-roles: [SCANNER, OPS, ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GateReadingBatch'
+      responses:
+        '200':
+          description: Esito dell'acquisizione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResult'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /ingest/stand-visits:
+    post:
+      tags: [Acquisizione dati]
+      operationId: ingestStandVisits
+      summary: Acquisisce visite agli stand (app di scansione)
+      description: |
+        Massimo 500 visite per chiamata. `visitUuid` e' generato dal client e rende l'invio ripetibile senza duplicati
+        (utile con rete instabile). Una visita NON e' un contatto qualificato.
+      x-roles: [SCANNER, OPS, ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StandVisitBatch'
+      responses:
+        '200':
+          description: Esito dell'acquisizione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResult'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /ops/overview:
+    get:
+      tags: [Operativo]
+      operationId: getEventOverview
+      summary: Stato dell'evento per la dashboard staff
+      description: Contiene `isDemo` e `lastUpdatedAt`, cosi' l'interfaccia puo' distinguere dati reali, simulati e aggiornamento.
+      x-roles: [OPS, ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdQuery'
+      responses:
+        '200':
+          description: Panoramica
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventOverview'
+  /ops/presence:
+    get:
+      tags: [Operativo]
+      operationId: getPresenceEstimate
+      summary: Presenze STIMATE per padiglione
+      description: |
+        Metodo finestra di permanenza: un biglietto e' presente in un padiglione se ha una lettura OK a un suo varco
+        negli ultimi `dwellMinutes`. Non esistono uscite nei dati: e' una stima, mai un conteggio certo.
+        I padiglioni non vanno sommati; la serie con `pavilionCode = null` e' il totale evento con biglietti distinti.
+      x-roles: [OPS, ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdQuery'
+        - name: dwellMinutes
+          in: query
+          schema:
+            type: integer
+            minimum: 15
+            maximum: 360
+            default: 90
+        - name: bucketMinutes
+          in: query
+          schema:
+            type: integer
+            minimum: 5
+            maximum: 60
+            default: 15
+        - name: day
+          in: query
+          description: Giorno (locale) da restituire; se assente tutti
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Serie di presenze stimate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresenceEstimate'
+  /ops/stand-visits:
+    get:
+      tags: [Operativo]
+      operationId: listStandVisits
+      summary: Visite agli stand per ora
+      description: Una sola sorgente per cella stand/giorno/ora (app oppure aggregato orario), mai somma cieca.
+      x-roles: [OPS, ADMIN, COMMERCIAL]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdQuery'
+        - name: standCode
+          in: query
+          schema:
+            type: string
+        - name: day
+          in: query
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Pagina di visite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandVisitHourPage'
+
+  /kpi/commercial:
+    get:
+      tags: [KPI]
+      operationId: getCommercialKpi
+      summary: KPI commerciali per edizione
+      description: Contrattualizzato e incassato sono distinti. Ricavo/m2 = (area + maggiorazioni) netto sconto / m2 venduti; extra e sponsorizzazioni esclusi.
+      x-roles: [ADMIN, COMMERCIAL, BI_READER]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdOptional'
+      responses:
+        '200':
+          description: KPI
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommercialKpi'
+  /kpi/saturation:
+    get:
+      tags: [KPI]
+      operationId: getSaturationKpi
+      summary: Saturazione degli spazi (totale e per padiglione)
+      x-roles: [ADMIN, COMMERCIAL, OPS, BI_READER]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdOptional'
+      responses:
+        '200':
+          description: KPI
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SaturationKpi'
+  /kpi/visitors:
+    get:
+      tags: [KPI]
+      operationId: getVisitorsKpi
+      summary: Misure di visitatori (distinte, non sommabili)
+      x-roles: [ADMIN, OPS, BI_READER]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdOptional'
+      responses:
+        '200':
+          description: KPI
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VisitorsKpi'
+  /kpi/exhibitors:
+    get:
+      tags: [KPI]
+      operationId: listExhibitorKpi
+      summary: KPI per espositore ed edizione
+      description: '`costPerQualifiedContact` e'' sempre null finche'' non esistono costi attribuibili e una definizione di contatto qualificato.'
+      x-roles: [ADMIN, COMMERCIAL, BI_READER]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdOptional'
+        - name: exhibitorId
+          in: query
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Pagina di KPI
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExhibitorKpiPage'
+  /kpi/edition-comparison:
+    get:
+      tags: [KPI]
+      operationId: getEditionComparison
+      summary: Confronto tra edizioni con variazioni percentuali
+      x-roles: [ADMIN, COMMERCIAL, BI_READER]
+      responses:
+        '200':
+          description: Una riga per edizione
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EditionComparison'
+  /kpi/renewal:
+    get:
+      tags: [KPI]
+      operationId: getRenewalKpi
+      summary: Tasso di rinnovo
+      description: '`renewalRatePct` e'' null se l''edizione successiva non ha ancora contratti.'
+      x-roles: [ADMIN, COMMERCIAL, BI_READER]
+      responses:
+        '200':
+          description: KPI
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RenewalKpi'
+  /kpi/data-quality:
+    get:
+      tags: [KPI]
+      operationId: getDataQualityKpi
+      summary: Qualita dei dati per batch di importazione
+      x-roles: [ADMIN, OPS, BI_READER]
+      responses:
+        '200':
+          description: KPI
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ImportBatch'
+
+  /imports:
+    get:
+      tags: [Importazioni e qualita]
+      operationId: listImports
+      summary: Elenco importazioni
+      x-roles: [ADMIN, OPS]
+      parameters:
+        - name: sourceCode
+          in: query
+          schema:
+            $ref: '#/components/schemas/SourceCode'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ImportStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Pagina di importazioni
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportBatchPage'
+    post:
+      tags: [Importazioni e qualita]
+      operationId: createImport
+      summary: Avvia l'importazione di un file
+      description: |
+        Il file e' identificato dalla sua impronta SHA-256: lo stesso file non viene mai importato due volte.
+        Se e' gia' stato importato la risposta e' `409 IMPORT_ALREADY_DONE` con il batch esistente; per rielaborarlo
+        usare `POST /imports/{batchId}/rerun`. L'elaborazione e' asincrona (`202`).
+      x-roles: [ADMIN, OPS]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [sourceCode, file]
+              properties:
+                sourceCode:
+                  $ref: '#/components/schemas/SourceCode'
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: Importazione accettata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportBatch'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /imports/{batchId}:
+    get:
+      tags: [Importazioni e qualita]
+      operationId: getImport
+      summary: Esito di un'importazione
+      x-roles: [ADMIN, OPS]
+      parameters:
+        - $ref: '#/components/parameters/BatchIdPath'
+      responses:
+        '200':
+          description: Batch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportBatch'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /imports/{batchId}/rerun:
+    post:
+      tags: [Importazioni e qualita]
+      operationId: rerunImport
+      summary: Rielabora un batch senza duplicare i dati
+      x-roles: [ADMIN, OPS]
+      parameters:
+        - $ref: '#/components/parameters/BatchIdPath'
+      responses:
+        '202':
+          description: Rielaborazione accettata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportBatch'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /anomalies:
+    get:
+      tags: [Importazioni e qualita]
+      operationId: listAnomalies
+      summary: Anomalie sui dati
+      x-roles: [ADMIN, OPS]
+      parameters:
+        - name: batchId
+          in: query
+          schema:
+            type: integer
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/Severity'
+        - name: ruleCode
+          in: query
+          schema:
+            type: string
+            example: GAT-001
+        - name: resolutionStatus
+          in: query
+          schema:
+            $ref: '#/components/schemas/ResolutionStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Pagina di anomalie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnomalyPage'
+  /anomalies/{anomalyId}:
+    patch:
+      tags: [Importazioni e qualita]
+      operationId: resolveAnomaly
+      summary: Prende in carico o risolve un'anomalia
+      description: Registra utente e data. I dati originali non vengono modificati o cancellati.
+      x-roles: [ADMIN, OPS]
+      parameters:
+        - name: anomalyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnomalyResolution'
+      responses:
+        '200':
+          description: Anomalia aggiornata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anomaly'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /quarantine:
+    get:
+      tags: [Importazioni e qualita]
+      operationId: listQuarantine
+      summary: Record in quarantena
+      x-roles: [ADMIN, OPS]
+      parameters:
+        - name: batchId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/QuarantineStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Pagina di record in quarantena
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarantinePage'
+  /reconciliation:
+    get:
+      tags: [Importazioni e qualita]
+      operationId: getReconciliation
+      summary: Esito dei controlli di riconciliazione
+      x-roles: [ADMIN, OPS, BI_READER]
+      parameters:
+        - $ref: '#/components/parameters/EditionIdOptional'
+      responses:
+        '200':
+          description: Controlli
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReconciliationResult'
+
+  /portal/me:
+    get:
+      tags: [Portale espositore]
+      operationId: getPortalProfile
+      summary: Profilo dell'espositore autenticato
+      description: |
+        Tutti gli endpoint `/portal/me/**` usano SOLO l'identita' dell'espositore presente nel token.
+        Non accettano un `exhibitorId` dal client. Una risorsa di un altro espositore risponde `404`.
+      x-roles: [EXHIBITOR]
+      responses:
+        '200':
+          description: Profilo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortalProfile'
+  /portal/me/contracts:
+    get:
+      tags: [Portale espositore]
+      operationId: listPortalContracts
+      summary: I miei contratti, stand e stato dei pagamenti
+      x-roles: [EXHIBITOR]
+      responses:
+        '200':
+          description: Contratti dell'espositore
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortalContract'
+  /portal/me/visits:
+    get:
+      tags: [Portale espositore]
+      operationId: listPortalVisits
+      summary: Visite ricevute dai miei stand
+      x-roles: [EXHIBITOR]
+      parameters:
+        - name: editionId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Visite per ora
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortalVisit'
+  /portal/me/kpi:
+    get:
+      tags: [Portale espositore]
+      operationId: getPortalKpi
+      summary: I miei risultati per edizione, con confronto con la precedente
+      x-roles: [EXHIBITOR]
+      responses:
+        '200':
+          description: KPI dell'espositore
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortalKpi'
+  /portal/me/benchmark:
+    get:
+      tags: [Portale espositore]
+      operationId: getPortalBenchmark
+      summary: Confronto di mercato aggregato e anonimo
+      description: Restituisce righe solo per le categorie con almeno 5 espositori. Mai nomi, contratti o ricavi di singoli concorrenti.
+      x-roles: [EXHIBITOR]
+      responses:
+        '200':
+          description: Medie per categoria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortalBenchmark'
+  /portal/me/report:
+    get:
+      tags: [Portale espositore]
+      operationId: getPortalReport
+      summary: Il mio report individuale
+      x-roles: [EXHIBITOR]
+      parameters:
+        - name: editionId
+          in: query
+          description: Se assente, tutte le edizioni
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExhibitorReport'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT con ruoli e, per gli espositori, `exhibitor_id`.
+
+  parameters:
+    EditionIdPath:
+      name: editionId
+      in: path
+      required: true
+      schema:
+        type: integer
+    EditionIdQuery:
+      name: editionId
+      in: query
+      required: true
+      schema:
+        type: integer
+    EditionIdOptional:
+      name: editionId
+      in: query
+      required: false
+      schema:
+        type: integer
+    ExhibitorIdPath:
+      name: exhibitorId
+      in: path
+      required: true
+      schema:
+        type: integer
+    QuoteIdPath:
+      name: quoteId
+      in: path
+      required: true
+      schema:
+        type: integer
+    ContractIdPath:
+      name: contractId
+      in: path
+      required: true
+      schema:
+        type: integer
+    PreemptionIdPath:
+      name: preemptionId
+      in: path
+      required: true
+      schema:
+        type: integer
+    BatchIdPath:
+      name: batchId
+      in: path
+      required: true
+      schema:
+        type: integer
+    Page:
+      name: page
+      in: query
+      description: Numero di pagina, da 0
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      description: Elementi per pagina
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 20
+    Sort:
+      name: sort
+      in: query
+      description: 'Campo e verso, es. `legalName,asc`. Solo campi dichiarati ordinabili; altri danno 400.'
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Identificativo univoco scelto dal client (UUID). Una ripetizione con la stessa chiave restituisce la prima risposta senza duplicare l'operazione. Valida 24 ore.
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 64
+    RowVersionHeader:
+      name: If-Match
+      in: header
+      required: true
+      description: '`rowVersion` letto dalla risorsa. Se e'' cambiato nel frattempo la risposta e'' `409 OPTIMISTIC_LOCK_CONFLICT`.'
+      schema:
+        type: integer
+
+  responses:
+    Unauthorized:
+      description: Token mancante o non valido (`UNAUTHENTICATED`)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Ruolo non autorizzato (`FORBIDDEN`)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Risorsa inesistente oppure non visibile a questo utente (`NOT_FOUND`)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: Conflitto di stato o di concorrenza (es. `STAND_ALREADY_SOLD`, `OPTIMISTIC_LOCK_CONFLICT`, `IMPORT_ALREADY_DONE`)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unprocessable:
+      description: Dati validi come formato ma non ammessi dalle regole (`VALIDATION_ERROR`, `PAYMENT_EXCEEDS_CONTRACT`, `PREEMPTION_EXPIRED`, ...)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    PayloadTooLarge:
+      description: Troppi elementi o file troppo grande (`PAYLOAD_TOO_LARGE`)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    TooManyRequests:
+      description: Limite di richieste superato (`RATE_LIMITED`); l'header `Retry-After` indica quando riprovare
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    # ---------- Generali ----------
+    Problem:
+      type: object
+      required: [title, status, code]
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+          example: Stand gia' venduto
+        status:
+          type: integer
+          example: 409
+        code:
+          type: string
+          description: Codice stabile per i client. Non cambia tra versioni compatibili.
+          example: STAND_ALREADY_SOLD
+        detail:
+          type: string
+        traceId:
+          type: string
+          description: Identificativo per ritrovare la richiesta nei log
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          example: lines[0].quantity
+        message:
+          type: string
+    PageInfo:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+    CurrentUser:
+      type: object
+      required: [username, roles]
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [ADMIN, COMMERCIAL, OPS, EXHIBITOR, SCANNER, BI_READER]
+        exhibitorId:
+          type: integer
+          nullable: true
+
+    # ---------- Enumerazioni ----------
+    EditionStatus:
+      type: string
+      enum: [PLANNED, SALES_OPEN, RUNNING, CLOSED]
+    StandStatus:
+      type: string
+      enum: [AVAILABLE, RESERVED, SOLD, FREE, NOT_SELLABLE]
+    PositionType:
+      type: string
+      enum: [LINEA, ANGOLO, PENISOLA, ISOLA]
+    QuoteStatus:
+      type: string
+      enum: [DRAFT, SENT, CONFIRMED, REJECTED, EXPIRED, CONVERTED]
+    ContractStatus:
+      type: string
+      enum: [DRAFT, SIGNED, CANCELLED]
+    LineType:
+      type: string
+      enum: [SPACE, SURCHARGE, EXTRA, SPONSORSHIP]
+    ItemType:
+      type: string
+      enum: [SPACE, SURCHARGE, SPONSORSHIP, EXTRA]
+    PriceUnit:
+      type: string
+      enum: [SQM, PCT_OF_SPACE, PACKAGE, EACH]
+    PaymentKind:
+      type: string
+      enum: [DEPOSIT, BALANCE, REFUND]
+    PaymentState:
+      type: string
+      enum: [DUE, OVERDUE, PAID, PAID_LATE]
+    SponsorshipStatus:
+      type: string
+      enum: [SOLD, DELIVERED, CANCELLED]
+    PreemptionStatus:
+      type: string
+      enum: [OPEN, EXERCISED, EXPIRED, WAIVED]
+    ReadingResult:
+      type: string
+      enum: [OK, KO]
+    Direction:
+      type: string
+      enum: [IN, OUT, UNKNOWN]
+    Severity:
+      type: string
+      enum: [INFO, WARNING, ERROR, CRITICAL]
+    ResolutionStatus:
+      type: string
+      enum: [OPEN, ACKNOWLEDGED, RESOLVED, WONT_FIX]
+    AnomalyAction:
+      type: string
+      enum: [NONE, LOADED_FLAGGED, AUTO_CORRECTED, QUARANTINED, REJECTED]
+    QuarantineStatus:
+      type: string
+      enum: [PENDING, RELEASED, DISCARDED]
+    ImportStatus:
+      type: string
+      enum: [RUNNING, COMPLETED, COMPLETED_WITH_ISSUES, FAILED, SUPERSEDED]
+    SourceCode:
+      type: string
+      enum: [XLSX_COMMERCIALE, BIGL_2024, BIGL_2025, TORN_2024, TORN_2025, LEAD_2025, VISITE_2025]
+    Money:
+      type: number
+      format: double
+      description: Euro, IVA esclusa, arrotondato a due decimali dal server
+      example: 10945.9
+
+    # ---------- Anagrafiche ----------
+    EditionDay:
+      type: object
+      properties:
+        dayDate:
+          type: string
+          format: date
+        dayNumber:
+          type: integer
+        opensAt:
+          type: string
+          example: '09:00'
+        closesAt:
+          type: string
+          example: '17:30'
+    Edition:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        year:
+          type: integer
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/EditionStatus'
+        timezone:
+          type: string
+          example: Europe/Rome
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/EditionDay'
+    Pavilion:
+      type: object
+      properties:
+        pavilionId:
+          type: integer
+        code:
+          type: string
+          example: P1
+        name:
+          type: string
+    ExhibitorCategory:
+      type: object
+      properties:
+        categoryId:
+          type: integer
+        name:
+          type: string
+    Geometry:
+      type: object
+      nullable: true
+      description: Coordinate nella planimetria. Null finche' il cliente non fornisce la pianta.
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+        width:
+          type: number
+        height:
+          type: number
+    ExhibitorRef:
+      type: object
+      nullable: true
+      description: Visibile solo a ADMIN e COMMERCIAL
+      properties:
+        exhibitorId:
+          type: integer
+        legalName:
+          type: string
+    StandEdition:
+      type: object
+      properties:
+        standEditionId:
+          type: integer
+        standId:
+          type: integer
+        standCode:
+          type: string
+          example: P1-C01
+        pavilionCode:
+          type: string
+        sqm:
+          type: number
+        positionType:
+          $ref: '#/components/schemas/PositionType'
+        commercialStatus:
+          $ref: '#/components/schemas/StandStatus'
+        reservedUntil:
+          type: string
+          format: date-time
+          nullable: true
+        listPrice:
+          type: number
+          nullable: true
+          description: Area piu' maggiorazione di posizione, prima dello sconto
+        geometry:
+          $ref: '#/components/schemas/Geometry'
+        exhibitor:
+          $ref: '#/components/schemas/ExhibitorRef'
+        rowVersion:
+          type: integer
+    PavilionPlan:
+      type: object
+      properties:
+        pavilionCode:
+          type: string
+        name:
+          type: string
+        stands:
+          type: array
+          items:
+            $ref: '#/components/schemas/StandEdition'
+    Floorplan:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        pavilions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PavilionPlan'
+    StandEditionPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/StandEdition'
+    PriceItem:
+      type: object
+      properties:
+        priceItemId:
+          type: integer
+        code:
+          type: string
+          example: SPAZIO-P1
+        name:
+          type: string
+        itemType:
+          $ref: '#/components/schemas/ItemType'
+        unit:
+          $ref: '#/components/schemas/PriceUnit'
+        unitPrice:
+          type: number
+          nullable: true
+        pct:
+          type: number
+          nullable: true
+          description: Frazione 0-1 (0.10 = 10%) per le maggiorazioni
+        pavilionCode:
+          type: string
+          nullable: true
+        positionType:
+          type: string
+          nullable: true
+          description: LINEA, ANGOLO, PENISOLA o ISOLA (solo per le maggiorazioni)
+        maxQuantity:
+          type: integer
+          nullable: true
+    PriceList:
+      type: object
+      properties:
+        priceListId:
+          type: integer
+        editionId:
+          type: integer
+        origin:
+          type: string
+          enum: [CLIENT_LIST, RECONSTRUCTED_FROM_CONTRACTS]
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED, ARCHIVED]
+        depositPct:
+          type: number
+          nullable: true
+        balanceDaysBefore:
+          type: integer
+          nullable: true
+        preemptionDeadline:
+          type: string
+          format: date
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceItem'
+    PriceItemUpdate:
+      type: object
+      properties:
+        unitPrice:
+          $ref: '#/components/schemas/Money'
+        pct:
+          type: number
+          minimum: 0
+          maximum: 1
+        maxQuantity:
+          type: integer
+          minimum: 1
+
+    # ---------- Espositori ----------
+    ContactRef:
+      type: object
+      nullable: true
+      description: Visibile solo a ADMIN e COMMERCIAL
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+    Exhibitor:
+      type: object
+      properties:
+        exhibitorId:
+          type: integer
+        exhibitorCode:
+          type: string
+          example: ESP001
+        legalName:
+          type: string
+        vatNumber:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        city:
+          type: string
+          nullable: true
+        primaryContact:
+          $ref: '#/components/schemas/ContactRef'
+    ExhibitorInput:
+      type: object
+      required: [legalName, vatNumber, categoryId]
+      properties:
+        legalName:
+          type: string
+          minLength: 2
+          maxLength: 200
+        vatNumber:
+          type: string
+          pattern: '^[0-9A-Z]{8,14}$'
+        categoryId:
+          type: integer
+        city:
+          type: string
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+    ExhibitorPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Exhibitor'
+
+    # ---------- Preventivi e contratti ----------
+    QuoteLineInput:
+      type: object
+      required: [priceItemId, quantity]
+      properties:
+        priceItemId:
+          type: integer
+        standEditionId:
+          type: integer
+          description: Obbligatorio per le voci di tipo SPACE
+        quantity:
+          type: number
+          minimum: 0.01
+          description: Per SPACE e' ignorata e vale la metratura dello stand
+        description:
+          type: string
+    QuoteCreate:
+      type: object
+      required: [editionId, exhibitorId, lines]
+      properties:
+        editionId:
+          type: integer
+        exhibitorId:
+          type: integer
+        discountPct:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0
+        validUntil:
+          type: string
+          format: date
+        lines:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/QuoteLineInput'
+    DocumentLine:
+      type: object
+      properties:
+        lineNo:
+          type: integer
+        lineType:
+          $ref: '#/components/schemas/LineType'
+        priceItemId:
+          type: integer
+        standEditionId:
+          type: integer
+          nullable: true
+        standCode:
+          type: string
+          nullable: true
+        description:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          $ref: '#/components/schemas/Money'
+        amount:
+          $ref: '#/components/schemas/Money'
+    Quote:
+      type: object
+      properties:
+        quoteId:
+          type: integer
+        quoteNumber:
+          type: string
+        editionId:
+          type: integer
+        exhibitorId:
+          type: integer
+        status:
+          $ref: '#/components/schemas/QuoteStatus'
+        discountPct:
+          type: number
+        listAmount:
+          $ref: '#/components/schemas/Money'
+        netAmount:
+          $ref: '#/components/schemas/Money'
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        rowVersion:
+          type: integer
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentLine'
+    QuotePage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Quote'
+    ContractFromQuote:
+      type: object
+      required: [signedOn]
+      properties:
+        signedOn:
+          type: string
+          format: date
+        isRenewal:
+          type: boolean
+          default: false
+    ContractCancel:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 3
+    ContractStandRef:
+      type: object
+      properties:
+        standEditionId:
+          type: integer
+        standCode:
+          type: string
+        sqm:
+          type: number
+    Contract:
+      type: object
+      properties:
+        contractId:
+          type: integer
+        contractNumber:
+          type: string
+          example: C2025-0089
+        editionId:
+          type: integer
+        exhibitorId:
+          type: integer
+        quoteId:
+          type: integer
+          nullable: true
+        status:
+          $ref: '#/components/schemas/ContractStatus'
+        signedOn:
+          type: string
+          format: date
+          nullable: true
+        listAmount:
+          $ref: '#/components/schemas/Money'
+        discountPct:
+          type: number
+        netAmount:
+          $ref: '#/components/schemas/Money'
+        isRenewal:
+          type: boolean
+        rowVersion:
+          type: integer
+        stands:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContractStandRef'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentLine'
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+    ContractPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Contract'
+    Payment:
+      type: object
+      properties:
+        paymentId:
+          type: integer
+        contractId:
+          type: integer
+        kind:
+          $ref: '#/components/schemas/PaymentKind'
+        dueOn:
+          type: string
+          format: date
+        dueAmount:
+          $ref: '#/components/schemas/Money'
+        dueAmountBasis:
+          type: string
+          enum: [RULE_DERIVED, CONTRACT_SCHEDULE]
+        paidOn:
+          type: string
+          format: date
+          nullable: true
+        paidAmount:
+          type: number
+          nullable: true
+        paidAmountIsAssumed:
+          type: boolean
+        state:
+          $ref: '#/components/schemas/PaymentState'
+    PaymentCreate:
+      type: object
+      required: [kind, paidOn, paidAmount]
+      properties:
+        kind:
+          $ref: '#/components/schemas/PaymentKind'
+        paidOn:
+          type: string
+          format: date
+        paidAmount:
+          $ref: '#/components/schemas/Money'
+    Sponsorship:
+      type: object
+      properties:
+        sponsorshipId:
+          type: integer
+        contractId:
+          type: integer
+        contractLineId:
+          type: integer
+        editionId:
+          type: integer
+        exhibitorId:
+          type: integer
+        packageCode:
+          type: string
+          example: SP-SOCIAL
+        packageName:
+          type: string
+        status:
+          $ref: '#/components/schemas/SponsorshipStatus'
+        notes:
+          type: string
+          nullable: true
+    SponsorshipUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/SponsorshipStatus'
+        notes:
+          type: string
+    SponsorshipPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Sponsorship'
+    Preemption:
+      type: object
+      properties:
+        preemptionId:
+          type: integer
+        exhibitorId:
+          type: integer
+        standCode:
+          type: string
+        sourceContractId:
+          type: integer
+        forEditionId:
+          type: integer
+        deadline:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/PreemptionStatus'
+        exercisedContractId:
+          type: integer
+          nullable: true
+    PreemptionPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Preemption'
+
+    # ---------- Acquisizione e operativo ----------
+    GateReadingInput:
+      type: object
+      required: [sourceRowKey, gateCode, ticketCode, readAt, result]
+      properties:
+        sourceRowKey:
+          type: string
+          description: Chiave univoca della lettura nella sorgente (idempotenza)
+          example: P1-NORD|T25041075|2025-12-19T08:00:05Z
+        gateCode:
+          type: string
+          example: P1-NORD
+        ticketCode:
+          type: string
+          example: T25041075
+        readAt:
+          type: string
+          format: date-time
+        result:
+          $ref: '#/components/schemas/ReadingResult'
+        direction:
+          $ref: '#/components/schemas/Direction'
+    GateReadingBatch:
+      type: object
+      required: [sourceCode, editionId, readings]
+      properties:
+        sourceCode:
+          type: string
+          description: Sorgente delle letture (es. TORN_2025 o una sorgente live)
+        editionId:
+          type: integer
+        readings:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/GateReadingInput'
+    StandVisitInput:
+      type: object
+      required: [visitUuid, standCode, visitedAt]
+      properties:
+        visitUuid:
+          type: string
+          format: uuid
+          description: Generato dal client; rende la richiesta ripetibile
+        standCode:
+          type: string
+        visitedAt:
+          type: string
+          format: date-time
+        deviceCode:
+          type: string
+        visitorToken:
+          type: string
+          description: Identificativo pseudonimo. Mai nome, email o altri dati personali.
+    StandVisitBatch:
+      type: object
+      required: [editionId, visits]
+      properties:
+        editionId:
+          type: integer
+        visits:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/StandVisitInput'
+    IngestResult:
+      type: object
+      properties:
+        received:
+          type: integer
+        accepted:
+          type: integer
+        duplicates:
+          type: integer
+        rejected:
+          type: integer
+        anomalies:
+          type: integer
+        batchId:
+          type: integer
+          nullable: true
+    EventOverview:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        isDemo:
+          type: boolean
+          description: True se i dati visualizzati sono simulati
+        lastUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        ticketsSold:
+          type: integer
+        personsSold:
+          type: integer
+        ticketsValidated:
+          type: integer
+        uniqueDailyEntries:
+          type: integer
+        passesTotal:
+          type: integer
+        passesOrphan:
+          type: integer
+        openAnomalies:
+          type: integer
+    PresencePoint:
+      type: object
+      properties:
+        pavilionCode:
+          type: string
+          nullable: true
+          description: Null = totale evento (biglietti distinti)
+        bucketEnd:
+          type: string
+          format: date-time
+        estPresent:
+          type: integer
+    PresenceEstimate:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        method:
+          type: string
+          example: DWELL_WINDOW
+        dwellMinutes:
+          type: integer
+        isEstimate:
+          type: boolean
+          example: true
+        series:
+          type: array
+          items:
+            $ref: '#/components/schemas/PresencePoint'
+    StandVisitHour:
+      type: object
+      properties:
+        standCode:
+          type: string
+        visitDate:
+          type: string
+          format: date
+        visitHour:
+          type: integer
+        visits:
+          type: integer
+        origin:
+          type: string
+          enum: [APP, HOURLY_AGGREGATE]
+    StandVisitHourPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/StandVisitHour'
+
+    # ---------- KPI ----------
+    CommercialKpi:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        year:
+          type: integer
+        contractsSigned:
+          type: integer
+        exhibitors:
+          type: integer
+        contractedNet:
+          $ref: '#/components/schemas/Money'
+        spaceNet:
+          $ref: '#/components/schemas/Money'
+        extrasNet:
+          $ref: '#/components/schemas/Money'
+        sponsorshipNet:
+          $ref: '#/components/schemas/Money'
+        partsDiff:
+          type: number
+          description: Deve essere 0 (controllo di coerenza)
+        cashCollected:
+          $ref: '#/components/schemas/Money'
+        sqmSold:
+          type: number
+          nullable: true
+        revenuePerSqm:
+          type: number
+          nullable: true
+        depositPaidPct:
+          type: number
+          nullable: true
+        quoteConversionPct:
+          type: number
+          nullable: true
+    SaturationKpi:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        pavilionCode:
+          type: string
+          nullable: true
+          description: Null = totale edizione
+        standsSellable:
+          type: integer
+        standsSold:
+          type: integer
+        sqmSellable:
+          type: number
+        sqmSold:
+          type: number
+        sqmReserved:
+          type: number
+        sqmFree:
+          type: number
+        saturationPct:
+          type: number
+          nullable: true
+        occupancyPct:
+          type: number
+          nullable: true
+    VisitorsKpi:
+      type: object
+      description: Misure distinte, da non sommare tra loro
+      properties:
+        editionId:
+          type: integer
+        year:
+          type: integer
+        ticketsSold:
+          type: integer
+        personsSold:
+          type: integer
+        ticketsFree:
+          type: integer
+        ticketsValidated:
+          type: integer
+        validationRatePct:
+          type: number
+          nullable: true
+        uniqueDailyEntries:
+          type: integer
+        passesTotal:
+          type: integer
+        passesOrphan:
+          type: integer
+    ExhibitorKpi:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        year:
+          type: integer
+        exhibitorId:
+          type: integer
+        contracts:
+          type: integer
+        contractedNet:
+          $ref: '#/components/schemas/Money'
+        sqm:
+          type: number
+          nullable: true
+        revenuePerSqm:
+          type: number
+          nullable: true
+        visits:
+          type: integer
+          nullable: true
+        visitsPerSqm:
+          type: number
+          nullable: true
+        leadsCollected:
+          type: integer
+        leadsQualified:
+          type: integer
+        contractValuePerVisit:
+          type: number
+          nullable: true
+        costPerQualifiedContact:
+          type: number
+          nullable: true
+          description: Sempre null finche' costi attribuibili e definizione di qualificato non sono forniti
+        prevYear:
+          type: integer
+          nullable: true
+        contractedNetDeltaPct:
+          type: number
+          nullable: true
+        visitsDeltaPct:
+          type: number
+          nullable: true
+    ExhibitorKpiPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExhibitorKpi'
+    EditionComparison:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        year:
+          type: integer
+        prevYear:
+          type: integer
+          nullable: true
+        contractedNet:
+          $ref: '#/components/schemas/Money'
+        revenuePerSqm:
+          type: number
+          nullable: true
+        exhibitors:
+          type: integer
+        saturationPct:
+          type: number
+          nullable: true
+        ticketsSold:
+          type: integer
+        ticketsValidated:
+          type: integer
+        uniqueDailyEntries:
+          type: integer
+        contractedNetDeltaPct:
+          type: number
+          nullable: true
+        revenuePerSqmDeltaPct:
+          type: number
+          nullable: true
+        ticketsSoldDeltaPct:
+          type: number
+          nullable: true
+        uniqueEntriesDeltaPct:
+          type: number
+          nullable: true
+    RenewalKpi:
+      type: object
+      properties:
+        editionId:
+          type: integer
+        year:
+          type: integer
+        exhibitors:
+          type: integer
+        renewedNext:
+          type: integer
+        renewalRatePct:
+          type: number
+          nullable: true
+
+    # ---------- Importazioni e qualita ----------
+    ImportBatch:
+      type: object
+      properties:
+        batchId:
+          type: integer
+        sourceCode:
+          $ref: '#/components/schemas/SourceCode'
+        fileName:
+          type: string
+        fileSha256:
+          type: string
+        status:
+          $ref: '#/components/schemas/ImportStatus'
+        startedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rowsRead:
+          type: integer
+        rowsLoaded:
+          type: integer
+        rowsQuarantined:
+          type: integer
+        rowsRejected:
+          type: integer
+        runCount:
+          type: integer
+        anomalies:
+          type: integer
+        openAnomalies:
+          type: integer
+        anomalyPct:
+          type: number
+          nullable: true
+    ImportBatchPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/ImportBatch'
+    Anomaly:
+      type: object
+      properties:
+        anomalyId:
+          type: integer
+        batchId:
+          type: integer
+          nullable: true
+        sourceCode:
+          type: string
+        ruleCode:
+          type: string
+          example: GAT-001
+        severity:
+          $ref: '#/components/schemas/Severity'
+        entity:
+          type: string
+        sourceRowNo:
+          type: integer
+          nullable: true
+        recordRef:
+          type: string
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        actionApplied:
+          $ref: '#/components/schemas/AnomalyAction'
+        resolutionStatus:
+          $ref: '#/components/schemas/ResolutionStatus'
+        detectedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+        resolutionNote:
+          type: string
+          nullable: true
+    AnomalyPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Anomaly'
+    AnomalyResolution:
+      type: object
+      required: [resolutionStatus]
+      properties:
+        resolutionStatus:
+          $ref: '#/components/schemas/ResolutionStatus'
+        resolutionNote:
+          type: string
+          description: Obbligatoria per RESOLVED e WONT_FIX
+    QuarantineItem:
+      type: object
+      properties:
+        quarantineId:
+          type: integer
+        batchId:
+          type: integer
+        sourceRowNo:
+          type: integer
+        reasonRule:
+          type: string
+        status:
+          $ref: '#/components/schemas/QuarantineStatus'
+        rawRecord:
+          type: object
+          additionalProperties: true
+          description: Riga originale, senza email in chiaro
+    QuarantinePage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/QuarantineItem'
+    ReconciliationResult:
+      type: object
+      properties:
+        checkCode:
+          type: string
+          example: REC-05
+        editionId:
+          type: integer
+          nullable: true
+        layerA:
+          type: string
+        valueA:
+          type: number
+          nullable: true
+        layerB:
+          type: string
+        valueB:
+          type: number
+          nullable: true
+        status:
+          type: string
+          enum: [MATCH, MISMATCH, EXPECTED_DIFF]
+
+    # ---------- Portale espositore ----------
+    PortalProfile:
+      type: object
+      properties:
+        exhibitorId:
+          type: integer
+        exhibitorCode:
+          type: string
+        legalName:
+          type: string
+        categoryName:
+          type: string
+    PortalContract:
+      type: object
+      properties:
+        contractId:
+          type: integer
+        contractNumber:
+          type: string
+        editionYear:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ContractStatus'
+        signedOn:
+          type: string
+          format: date
+          nullable: true
+        listAmount:
+          $ref: '#/components/schemas/Money'
+        discountPct:
+          type: number
+        netAmount:
+          $ref: '#/components/schemas/Money'
+        isRenewal:
+          type: boolean
+        stands:
+          type: string
+          description: Codici stand separati da virgola
+        depositDueOn:
+          type: string
+          format: date
+          nullable: true
+        depositPaidOn:
+          type: string
+          format: date
+          nullable: true
+        balanceDueOn:
+          type: string
+          format: date
+          nullable: true
+        balancePaidOn:
+          type: string
+          format: date
+          nullable: true
+    PortalVisit:
+      type: object
+      properties:
+        editionYear:
+          type: integer
+        standCode:
+          type: string
+        visitDate:
+          type: string
+          format: date
+        visitHour:
+          type: integer
+        visits:
+          type: integer
+    PortalKpi:
+      type: object
+      properties:
+        editionYear:
+          type: integer
+        contracts:
+          type: integer
+        contractedNet:
+          $ref: '#/components/schemas/Money'
+        sqm:
+          type: number
+          nullable: true
+        revenuePerSqm:
+          type: number
+          nullable: true
+        visits:
+          type: integer
+          nullable: true
+        visitsPerSqm:
+          type: number
+          nullable: true
+        leadsCollected:
+          type: integer
+        leadsQualified:
+          type: integer
+        contractValuePerVisit:
+          type: number
+          nullable: true
+        prevYear:
+          type: integer
+          nullable: true
+        contractedNetDeltaPct:
+          type: number
+          nullable: true
+        visitsDeltaPct:
+          type: number
+          nullable: true
+    PortalBenchmark:
+      type: object
+      properties:
+        editionYear:
+          type: integer
+        category:
+          type: string
+        exhibitorsInGroup:
+          type: integer
+          minimum: 5
+        avgVisitsPerSqm:
+          type: number
+    ExhibitorReport:
+      type: object
+      properties:
+        exhibitor:
+          $ref: '#/components/schemas/PortalProfile'
+        contracts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortalContract'
+        kpi:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortalKpi'
+        visits:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortalVisit'
