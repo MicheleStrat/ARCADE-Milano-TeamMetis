@@ -12,7 +12,7 @@ Questo ramo contiene l'area **BID**: database PostgreSQL, (in futuro) backend Ja
 | Dati di riferimento e regole di qualità | **Scritti** (V2) |
 | Ruoli, grant e Row Level Security | **Scritti e provati** in SQL |
 | Schemi `analytics` e `portal` (KPI) | **Scritti e provati** con dati di prova |
-| ETL biglietteria, tornelli e visite stand 2024/2025 | **Implementato, da eseguire e verificare sui file reali** |
+| ETL biglietteria e tornelli 2024/2025 | **Verificato sui file reali** (visite stand solo con dati di prova) |
 | Backend Spring Boot e contratto API | **Da fare** |
 | Frontend Angular (dashboard staff, portale espositori, scansione stand) | **Da fare** |
 | Integrazione con Power Apps / Power BI | **Da configurare** (dipende da tenant e licenze Microsoft) |
