@@ -1,0 +1,31 @@
+# Database PostgreSQL locale (stesse migrazioni usate su Azure): per test e come copia di riserva.
+#
+# Avvio:  copia .env.example in .env, scegli POSTGRES_PASSWORD, poi:  docker compose up -d
+#         (oppure:  POSTGRES_PASSWORD=<password locale> docker compose up -d)
+# Reset:  docker compose down -v   (cancella i dati locali; al prossimo avvio rilegge V1..V5)
+#
+# Le migrazioni in database/migrations vengono eseguite UNA volta, al primo avvio con volume vuoto,
+# in ordine alfabetico. Se una fallisce il database non parte: e' voluto.
+# Il database e' raggiungibile solo da questo computer (127.0.0.1).
+# PG_IMAGE deve avere la stessa versione maggiore del server Azure (per leggere i dump).
+services:
+  db:
+    image: ${PG_IMAGE:-postgres:16-alpine}
+    container_name: arcade-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-arcade}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Imposta POSTGRES_PASSWORD (variabile d'ambiente o file .env)}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - arcade-db-data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-arcade}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  arcade-db-data:
