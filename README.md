@@ -26,6 +26,7 @@ Cosa è stato provato e cosa no è nel dettaglio in [docs/01-lavoro-svolto.md](d
 database/
   migrations/   V1 schema · V2 dati di riferimento · V3 ruoli e RLS · V4 analytics e portal
   tests/        script SQL di prova (vincoli, KPI, sicurezza)
+Bid-01/         profiling dei file reali 2024/2025, anomalie e mapping commerciali
 docs/           documentazione (parti dall'indice)
 divisione-bid-bad-integrazione.md   chi fa cosa e come si collegano i componenti
 ```
@@ -36,6 +37,7 @@ Parti da [docs/00-indice.md](docs/00-indice.md).
 
 | File | Contenuto |
 |---|---|
+| [Bid-01/BID-01_report_profilazione.md](Bid-01/BID-01_report_profilazione.md) | Profilazione completa dei dati sorgente (biglietteria, tornelli, visite, commerciale) |
 | [docs/01-lavoro-svolto.md](docs/01-lavoro-svolto.md) | Cosa è stato fatto e come è stato verificato |
 | [docs/02-guida-database.md](docs/02-guida-database.md) | Come è fatto il database, avvio locale e test |
 | [docs/03-lavoro-futuro.md](docs/03-lavoro-futuro.md) | Attività rimanenti con scadenze |

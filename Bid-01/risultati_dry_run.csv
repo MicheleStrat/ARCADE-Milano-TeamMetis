@@ -1,0 +1,62 @@
+fonte,regola,descrizione,esito,n,su_totale,pct
+biglietteria_2024,R-B01,tipo biglietto non in tabella di decodifica,QUARANTENA,0,35719,0.0
+biglietteria_2024,R-B01,tipo biglietto decodificato (etichetta originale conservata),CORRETTO,35719,35719,100.0
+biglietteria_2024,R-B02,'Giorno valido' = '3 giorni' -> NULL + flag abbonamento,CORRETTO,5602,35719,15.68
+biglietteria_2024,R-B02,'Giorno valido' ne' data ne' '3 giorni',QUARANTENA,0,35719,0.0
+biglietteria_2024,R-B03,provincia gia' in sigla valida (solo maiuscole),OK,20178,35719,56.49
+biglietteria_2024,R-B03,provincia normalizzata a sigla (nome esteso o minuscolo),CORRETTO,13383,35719,37.47
+biglietteria_2024,R-B03,provincia vuota -> NULL,SEGNALATO,2158,35719,6.04
+biglietteria_2024,R-B03,provincia non riconosciuta,QUARANTENA,0,35719,0.0
+biglietteria_2024,R-B04,fascia eta' vuota -> NULL,SEGNALATO,1382,35719,3.87
+biglietteria_2024,R-B04,fascia eta' fuori elenco,QUARANTENA,0,35719,0.0
+biglietteria_2024,R-B05,prezzo con virgola convertito a decimale,CORRETTO,35719,35719,100.0
+biglietteria_2024,R-B05,prezzo non numerico o negativo,QUARANTENA,0,35719,0.0
+biglietteria_2024,R-B06,"minorenne (0-7, 8-13, 14-17): dato protetto, solo aggregati",SEGNALATO,13115,35719,36.72
+biglietteria_2025,R-B01,tipo biglietto non in tabella di decodifica,QUARANTENA,0,42556,0.0
+biglietteria_2025,R-B01,tipo biglietto decodificato (etichetta originale conservata),CORRETTO,42556,42556,100.0
+biglietteria_2025,R-B02,'Giorno valido' = '3 giorni' -> NULL + flag abbonamento,CORRETTO,6815,42556,16.01
+biglietteria_2025,R-B02,'Giorno valido' ne' data ne' '3 giorni',QUARANTENA,0,42556,0.0
+biglietteria_2025,R-B03,provincia gia' in sigla valida (solo maiuscole),OK,23898,42556,56.16
+biglietteria_2025,R-B03,provincia normalizzata a sigla (nome esteso o minuscolo),CORRETTO,16133,42556,37.91
+biglietteria_2025,R-B03,provincia vuota -> NULL,SEGNALATO,2525,42556,5.93
+biglietteria_2025,R-B03,provincia non riconosciuta,QUARANTENA,0,42556,0.0
+biglietteria_2025,R-B04,fascia eta' vuota -> NULL,SEGNALATO,1719,42556,4.04
+biglietteria_2025,R-B04,fascia eta' fuori elenco,QUARANTENA,0,42556,0.0
+biglietteria_2025,R-B05,prezzo con virgola convertito a decimale,CORRETTO,42556,42556,100.0
+biglietteria_2025,R-B05,prezzo non numerico o negativo,QUARANTENA,0,42556,0.0
+biglietteria_2025,R-B06,"minorenne (0-7, 8-13, 14-17): dato protetto, solo aggregati",SEGNALATO,15384,42556,36.15
+tornelli_2024,R-T01,timestamp non leggibile,QUARANTENA,0,46824,0.0
+tornelli_2024,R-T01,"formato armonizzato (timestamp locale, varco canonico, esito booleano)",CORRETTO,46824,46824,100.0
+tornelli_2024,R-T02,"lettura con codice non in biglietteria (respinta, conservata)",SEGNALATO,35,46824,0.07
+tornelli_2024,R-T02,lettura OK su codice sconosciuto (ingresso non giustificato),QUARANTENA,0,46824,0.0
+tornelli_2024,R-T03,lettura KO su biglietto noto (motivo non indicato),SEGNALATO,195,46824,0.42
+tornelli_2024,R-T04,"doppia lettura <=60 s, stesso varco, biglietto singolo: flag, non scartata",SEGNALATO,732,46594,1.57
+tornelli_2024,R-T04,ravvicinate <=60 s su Family: NON flaggate (4 persone legittime),OK,209,46594,0.45
+tornelli_2024,R-T05,lettura OK precedente all'orario di acquisto: flag,SEGNALATO,6042,46594,12.97
+tornelli_2024,R-T05,  di cui canale Cassa,SEGNALATO,5670,46594,12.17
+tornelli_2024,R-T04,letture OK dopo esclusione dei soli doppioni su biglietti singoli,OK,45862,46594,98.43
+tornelli_2024,R-T04,letture OK dopo esclusione di TUTTI i doppioni <=60 s (Family inclusi) - coincide con 'presenze' del brief,OK,45653,46594,97.98
+tornelli_2025,R-T01,timestamp non leggibile,QUARANTENA,0,55992,0.0
+tornelli_2025,R-T01,"formato armonizzato (timestamp locale, varco canonico, esito booleano)",CORRETTO,55992,55992,100.0
+tornelli_2025,R-T02,"lettura con codice non in biglietteria (respinta, conservata)",SEGNALATO,35,55992,0.06
+tornelli_2025,R-T02,lettura OK su codice sconosciuto (ingresso non giustificato),QUARANTENA,0,55992,0.0
+tornelli_2025,R-T03,lettura KO su biglietto noto (motivo non indicato),SEGNALATO,221,55992,0.39
+tornelli_2025,R-T04,"doppia lettura <=60 s, stesso varco, biglietto singolo: flag, non scartata",SEGNALATO,900,55736,1.61
+tornelli_2025,R-T04,ravvicinate <=60 s su Family: NON flaggate (4 persone legittime),OK,244,55736,0.44
+tornelli_2025,R-T05,lettura OK precedente all'orario di acquisto: flag,SEGNALATO,7488,55736,13.43
+tornelli_2025,R-T05,  di cui canale Cassa,SEGNALATO,6988,55736,12.54
+tornelli_2025,R-T04,letture OK dopo esclusione dei soli doppioni su biglietti singoli,OK,54836,55736,98.39
+tornelli_2025,R-T04,letture OK dopo esclusione di TUTTI i doppioni <=60 s (Family inclusi) - coincide con 'presenze' del brief,OK,54592,55736,97.95
+visite_stand_2025,R-S01,ora fuori da 09:00-18:00 (es. 912 scansioni alle 08:00),QUARANTENA,1,2451,0.04
+visite_stand_2025,R-S01,scansioni da escludere dai totali finche' in quarantena,QUARANTENA,912,36213,2.52
+visite_stand_2025,R-S02,slot orario mancante (non imputato),SEGNALATO,70,2520,2.78
+visite_stand_2025,R-S03,scansioni = 0 (valide),OK,159,2451,6.49
+contatti_stand_2025,R-S04,consenso_marketing vuoto -> trattato come NO,CORRETTO,9,1707,0.53
+contatti_stand_2025,R-S05,minorenne 14-17: e-mail e dettaglio non esposti,SEGNALATO,14,1707,0.82
+contatti_stand_2025,R-S06,"e-mail ripetuta su stand diversi (stesso visitatore, non errore)",OK,38,1707,2.23
+contratti_2024,R-C01,id_espositore derivato da nome identico (normalizzato),CORRETTO,79,88,89.77
+contratti_2024,R-C01,id_espositore derivato con regola 's' finale,CORRETTO,9,88,10.23
+contratti_2024,R-C01,nessuna corrispondenza automatica (confermare a mano),SEGNALATO,0,88,0.0
+contratti,R-C02,partita IVA letta come testo (11 cifre),OK,135,135,100.0
+contratti,R-C03,pagamento mancante (acconto o saldo): NULL conservato,SEGNALATO,16,198,8.08
+contratti,R-C04,saldo pagato prima dell'acconto o scadenze invertite,SEGNALATO,3,198,1.52

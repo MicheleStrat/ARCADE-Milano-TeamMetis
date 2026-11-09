@@ -12,6 +12,7 @@ Questo progetto è formativo: Factory Studios (cliente fittizio) organizza ARCAD
 | [02-guida-database.md](02-guida-database.md) | Spiegazione semplice del database, **come avviarlo e provarlo** | Per usarlo o spiegarlo |
 | [03-lavoro-futuro.md](03-lavoro-futuro.md) | **Cosa resta da fare**, in ordine, con scadenze e responsabilità BID/BAD | Per pianificare |
 | [04-domande-cliente.md](04-domande-cliente.md) | **Domande per il cliente** al kickoff, ordinate per priorità, con assunzioni di lavoro | Per preparare la riunione |
+| [../Bid-01/BID-01_report_profilazione.md](../Bid-01/BID-01_report_profilazione.md) | **Profilazione dei file reali**: biglietteria, tornelli, visite, commercio, regole e mapping | Per esaminare i dati sorgente e le anomalie |
 | [api/README.md](api/README.md) | **Contratto API** (OpenAPI v1 bozza): convenzioni, ruoli, errori, punti aperti. File: [api/openapi.yaml](api/openapi.yaml) | Per backend, Angular e BAD |
 | [data-model.md](data-model.md) | Progettazione tecnica completa del modello dati (tabelle, KPI, sicurezza, domande al cliente) | Documento di riferimento |
 | [05-ingestione-dati-2024-2025.md](05-ingestione-dati-2024-2025.md) | Pipeline e controlli prima del caricamento di biglietteria, tornelli e visite | Per importare i dati reali |
@@ -19,7 +20,7 @@ Questo progetto è formativo: Factory Studios (cliente fittizio) organizza ARCAD
 
 ## Stato in una riga
 
-Il **database PostgreSQL è progettato, scritto e provato** con dati di prova; **non è ancora stato caricato nessun dato reale del cliente** e backend, ETL, frontend, Power Apps, Power Automate e Power BI **non esistono ancora**.
+Il **database PostgreSQL è progettato, scritto e provato** con dati di prova; **non è ancora stato caricato nessun dato reale del cliente** e backend, ETL, frontend, Power Apps, Power Automate e Power BI **non esistono ancora**. I file reali del profiling BID-01 sono stati raccolti nella cartella [../Bid-01](../Bid-01) come riferimento per l’analisi e i successivi passaggi di ETL e modello dati.
 
 ## Glossario veloce
 

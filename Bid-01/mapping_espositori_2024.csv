@@ -1,0 +1,89 @@
+id_contratto,codice_stand,ragione_sociale_contratto,id_espositore_derivato,ragione_sociale_anagrafica,regola,da_confermare
+C2024-0001,P1-B10,Bussola Gears.,ESP013,Bussola Gear S.r.l.s.,plurale_errato_s_finale,True
+C2024-0002,P1-B12,Gelso Shop S.r.l.,ESP034,Gelso Shop S.r.l.,nome_identico_normalizzato,False
+C2024-0003,P3-A12,Urano Workshop S.r.l.s.,ESP029,Urano Workshop S.r.l.s.,nome_identico_normalizzato,False
+C2024-0004,P1-A03,ZENIT STUDIOS S.P.A.,ESP066,Zenit Studios S.p.A.,nome_identico_normalizzato,False
+C2024-0005,P3-B03,ASTRO WORKSHOP APS,ESP096,Astro Workshop APS,nome_identico_normalizzato,False
+C2024-0006,P3-A10,Abete Workshop APS,ESP067,Abete Workshop APS,nome_identico_normalizzato,False
+C2024-0007,P2-A02,Pavone Mobile,ESP072,Pavone Mobile S.r.l.,nome_identico_normalizzato,False
+C2024-0008,P1-A13,Canto Entertainment S.r.l.,ESP075,Canto Entertainment S.r.l.,nome_identico_normalizzato,False
+C2024-0009,P3-A14,Cristallo Workshop APS,ESP089,Cristallo Workshop APS,nome_identico_normalizzato,False
+C2024-0010,P1-A06,Orso Store S.p.A.,ESP074,Orso Store S.p.A.,nome_identico_normalizzato,False
+C2024-0011,P1-A08,Meteora Labs S.r.l.,ESP116,Meteora Labs S.r.l.,nome_identico_normalizzato,False
+C2024-0012,P3-A09,GIOVE ATELIER S.P.A.,ESP058,Giove Atelier S.p.A.,nome_identico_normalizzato,False
+C2024-0013,P3-B05,Vesta Collective APS,ESP048,Vesta Collective APS,nome_identico_normalizzato,False
+C2024-0014,P3-B11,Mandorla Merch S.r.l.,ESP051,Mandorla Merch S.r.l.,nome_identico_normalizzato,False
+C2024-0015,P1-A02,Kappa Devices,ESP060,Kappa Devices S.r.l.,nome_identico_normalizzato,False
+C2024-0016,P1-A15,Falco Labs S.r.l.,ESP099,Falco Labs S.r.l.,nome_identico_normalizzato,False
+C2024-0017,P3-B12,IPPO ATELIER S.R.L.,ESP087,Ippo Atelier S.r.l.,nome_identico_normalizzato,False
+C2024-0018,P3-B01,Nimbo Workshop APS,ESP076,Nimbo Workshop APS,nome_identico_normalizzato,False
+C2024-0019,P3-B08,Vulcano Studio APS,ESP110,Vulcano Studio APS,nome_identico_normalizzato,False
+C2024-0020,P1-A09,Dardo Devices,ESP065,Dardo Devices S.r.l.,nome_identico_normalizzato,False
+C2024-0021,P2-C01,QUOTA ENERGY S.P.A.,ESP020,Quota Energy S.p.A.,nome_identico_normalizzato,False
+C2024-0022,P3-A03,ECO COLLECTIBLES S.R.L.,ESP045,Eco Collectibles S.r.l.,nome_identico_normalizzato,False
+C2024-0023,P1-B04,ELICA GAMES S.R.L.,ESP004,Elica Games S.r.l.,nome_identico_normalizzato,False
+C2024-0024,P3-B15,Mirto Studio APS,ESP062,Mirto Studio APS,nome_identico_normalizzato,False
+C2024-0025,P1-B02,Nuvola Tech S.p.A.,ESP014,Nuvola Tech S.p.A.,nome_identico_normalizzato,False
+C2024-0026,P3-A05,VENTO PIXEL,ESP038,Vento Pixel,nome_identico_normalizzato,False
+C2024-0027,P1-A10,Nord Entertainment S.p.A.,ESP054,Nord Entertainment S.p.A.,nome_identico_normalizzato,False
+C2024-0028,P1-B14,Idra Entertainments.,ESP011,Idra Entertainment S.r.l.s.,plurale_errato_s_finale,True
+C2024-0029,P1-B05,Rubino Tech S.p.A.,ESP015,Rubino Tech S.p.A.,nome_identico_normalizzato,False
+C2024-0030,P3-A06,Airone Pixel APS,ESP019,Airone Pixel APS,nome_identico_normalizzato,False
+C2024-0031,P1-B01,ESTRO DEVICES S.R.L.S.,ESP097,Estro Devices S.r.l.s.,nome_identico_normalizzato,False
+C2024-0032,P3-B13,Menta Toys,ESP040,Menta Toys S.r.l.,nome_identico_normalizzato,False
+C2024-0033,P3-A13,Baia Studio APS,ESP044,Baia Studio APS,nome_identico_normalizzato,False
+C2024-0034,P3-A15,Prisma Collectibles,ESP059,Prisma Collectibles S.r.l.,nome_identico_normalizzato,False
+C2024-0035,P2-C14,Torre Institute,ESP027,Torre Institute S.r.l.,nome_identico_normalizzato,False
+C2024-0036,P1-A07,Faro Tech,ESP113,Faro Tech S.r.l.,nome_identico_normalizzato,False
+C2024-0037,P1-B08,Pietra Entertainments.,ESP095,Pietra Entertainment S.r.l.s.,plurale_errato_s_finale,True
+C2024-0038,P3-A08,LUPO WORKSHOP,ESP088,Lupo Workshop,nome_identico_normalizzato,False
+C2024-0039,P3-B04,Salice Studio APS,ESP061,Salice Studio APS,nome_identico_normalizzato,False
+C2024-0040,P2-B03,Gabbiano Campus srl,ESP118,Gabbiano Campus S.r.l.,nome_identico_normalizzato,False
+C2024-0041,P1-A05,Alba Tech srl,ESP057,Alba Tech S.r.l.,nome_identico_normalizzato,False
+C2024-0042,P2-C04,Ermes Channel S.r.l.s.,ESP107,Ermes Channel S.r.l.s.,nome_identico_normalizzato,False
+C2024-0043,P3-B07,Nebula Studio srls.,ESP041,Nebula Studio S.r.l.s.,nome_identico_normalizzato,False
+C2024-0044,P2-B02,Magma TV,ESP009,Magma TV S.r.l.,nome_identico_normalizzato,False
+C2024-0045,P3-A07,SOLE MERCH S.R.L.S.,ESP039,Sole Merch S.r.l.s.,nome_identico_normalizzato,False
+C2024-0046,P3-B10,Pixelia Pixels.,ESP006,Pixelia Pixel S.r.l.s.,plurale_errato_s_finale,True
+C2024-0047,P1-C08,Olmo Market,ESP090,Olmo Market S.r.l.,nome_identico_normalizzato,False
+C2024-0048,P1-A04,CORALLO GEAR S.P.A.,ESP003,Corallo Gear S.p.A.,nome_identico_normalizzato,False
+C2024-0049,P2-C06,Diadema Stream srl,ESP086,Diadema Stream S.r.l.,nome_identico_normalizzato,False
+C2024-0050,P3-B06,RUGIADA WORKSHOP S.R.L.S.,ESP094,Rugiada Workshop S.r.l.s.,nome_identico_normalizzato,False
+C2024-0051,P3-A02,Lampo Pixel APS,ESP022,Lampo Pixel APS,nome_identico_normalizzato,False
+C2024-0052,P1-A01,Castoro Labs S.r.l.,ESP032,Castoro Labs S.r.l.,nome_identico_normalizzato,False
+C2024-0053,P2-C09,Ferro Media S.p.A.,ESP023,Ferro Media S.p.A.,nome_identico_normalizzato,False
+C2024-0054,P1-B07,OPALE GEAR S.R.L.,ESP021,Opale Gear S.r.l.,nome_identico_normalizzato,False
+C2024-0055,P3-A04,Scirocco Workshop S.r.l.s.,ESP043,Scirocco Workshop S.r.l.s.,nome_identico_normalizzato,False
+C2024-0056,P3-A01,Delta Workshops.,ESP036,Delta Workshop S.r.l.s.,plurale_errato_s_finale,True
+C2024-0057,P2-B10,Duna Channel,ESP028,Duna Channel S.r.l.,nome_identico_normalizzato,False
+C2024-0058,P1-A14,Uragano Gear S.r.l.,ESP030,Uragano Gear S.r.l.,nome_identico_normalizzato,False
+C2024-0059,P1-B06,Lanterna Gear S.r.l.,ESP112,Lanterna Gear S.r.l.,nome_identico_normalizzato,False
+C2024-0060,P3-A11,Nettuno Pixel,ESP052,Nettuno Pixel,nome_identico_normalizzato,False
+C2024-0061,P3-B09,Fonte Workshop,ESP026,Fonte Workshop,nome_identico_normalizzato,False
+C2024-0062,P1-B03,GUFO GAMES S.P.A.,ESP101,Gufo Games S.p.A.,nome_identico_normalizzato,False
+C2024-0063,P3-B02,PINO PIXEL,ESP012,Pino Pixel,nome_identico_normalizzato,False
+C2024-0064,P1-C10,Ardesia Markets.,ESP056,Ardesia Market S.r.l.s.,plurale_errato_s_finale,True
+C2024-0065,P1-B11,Argento Games srl,ESP078,Argento Games S.r.l.,nome_identico_normalizzato,False
+C2024-0066,P2-B14,Ibisco Media,ESP064,Ibisco Media S.r.l.,nome_identico_normalizzato,False
+C2024-0067,P2-C07,AQUILA DRINKS S.R.L.S.,ESP082,Aquila Drinks S.r.l.s.,nome_identico_normalizzato,False
+C2024-0068,P3-B14,Fiocco Props,ESP077,Fiocco Props S.r.l.,nome_identico_normalizzato,False
+C2024-0069,P1-C11,Sestante Merch,ESP002,Sestante Merch S.r.l.,nome_identico_normalizzato,False
+C2024-0070,P2-A09,LAVA MOBILE S.R.L.,ESP079,Lava Mobile S.r.l.,nome_identico_normalizzato,False
+C2024-0071,P1-B09,Drago Games srl,ESP108,Drago Games S.r.l.,nome_identico_normalizzato,False
+C2024-0072,P2-C03,CRONO ENERGY S.R.L.,ESP093,Crono Energy S.r.l.,nome_identico_normalizzato,False
+C2024-0073,P1-C12,Fiume Merch,ESP085,Fiume Merch S.p.A.,nome_identico_normalizzato,False
+C2024-0074,P1-A12,GRIFONE STUDIOS S.P.A.,ESP025,Grifone Studios S.p.A.,nome_identico_normalizzato,False
+C2024-0075,P1-C01,Onda Collectibles S.p.A.,ESP001,Onda Collectibles S.p.A.,nome_identico_normalizzato,False
+C2024-0076,P1-C06,Lago Merch S.p.A.,ESP069,Lago Merch S.p.A.,nome_identico_normalizzato,False
+C2024-0077,P1-C02,TESSERA STUDIOS S.R.L.S.,ESP092,Tessera Studios S.r.l.s.,nome_identico_normalizzato,False
+C2024-0078,P1-C09,TASSO SHOP S.R.L.,ESP018,Tasso Shop S.r.l.,nome_identico_normalizzato,False
+C2024-0079,P1-A11,ECLISSE DEVICES S.R.L.,ESP005,Eclisse Devices S.r.l.,nome_identico_normalizzato,False
+C2024-0080,P2-B11,Polaris Snack S.r.l.s.,ESP037,Polaris Snack S.r.l.s.,nome_identico_normalizzato,False
+C2024-0081,P2-B06,Isola Snacks.,ESP035,Isola Snack S.r.l.s.,plurale_errato_s_finale,True
+C2024-0082,P1-C14,Tundra Distribuziones.,ESP055,Tundra Distribuzione S.r.l.s.,plurale_errato_s_finale,True
+C2024-0083,P1-B15,Icaro Shop S.p.A.,ESP024,Icaro Shop S.p.A.,nome_identico_normalizzato,False
+C2024-0084,P1-B13,Dora Techs.,ESP104,Dora Tech S.r.l.s.,plurale_errato_s_finale,True
+C2024-0085,P1-C15,Tigre Merch S.r.l.,ESP114,Tigre Merch S.r.l.,nome_identico_normalizzato,False
+C2024-0086,P1-C04,Vela Collectibles srls.,ESP016,Vela Collectibles S.r.l.s.,nome_identico_normalizzato,False
+C2024-0087,P2-C05,ZINCO ENERGY S.R.L.S.,ESP017,Zinco Energy S.r.l.s.,nome_identico_normalizzato,False
+C2024-0088,P1-C07,FERROVIA ENTERTAINMENT S.R.L.S.,ESP091,Ferrovia Entertainment S.r.l.s.,nome_identico_normalizzato,False

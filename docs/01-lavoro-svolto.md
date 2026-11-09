@@ -52,6 +52,25 @@ Questo file racconta, in ordine, cosa è stato fatto, perché, e con quale risul
 
 ---
 
+## Passo 3.1 — Profiling BID-01 dei file reali
+
+**Cosa**: la cartella [../Bid-01](../Bid-01) raccoglie il report di profilazione dei file sorgente 2024/2025, con l'analisi dei formati, relazioni, anomalie, regole di pulizia e punti da concordare con il BAD.
+
+**Documento principale**
+- [../Bid-01/BID-01_report_profilazione.md](../Bid-01/BID-01_report_profilazione.md)
+- [../Bid-01/00_INDICE.md](../Bid-01/00_INDICE.md)
+- [../Bid-01/04_anomalie_e_regole_di_pulizia.md](../Bid-01/04_anomalie_e_regole_di_pulizia.md)
+- [../Bid-01/05_punti_da_concordare_con_BAD.md](../Bid-01/05_punti_da_concordare_con_BAD.md)
+
+**Utilizzo nel progetto**
+- Costituisce la base documentale per il caricamento controllato e la definizione delle regole di qualità del dataset reale.
+- Ha guidato la revisione di `dq.rule` e delle anomalie da trattare nell'ETL.
+- Fornisce le evidenze per le decisioni da portare al cliente e al team BAD sulle presenze, i minori, i pagamenti e i contratti 2024 senza `id_espositore`.
+
+**Stato**: inserito nel repository come riferimento ufficiale del profiling BID-01; i file non modificano il database né la logica già prodotta, ma ne orientano la validazione e le prossime implementazioni.
+
+---
+
 ## Passo 4 — Modello dati: V1 (schema) e V2 (dati di riferimento)
 
 **File**
