@@ -13,7 +13,7 @@ Come usare questo documento:
 | Fascia | Quando serve la risposta | Domande | Cosa sblocca |
 |---|---|---|---|
 | **P1 — bloccanti** | entro il **30/10** (SAL 1: schema e API congelati) | D1–D10 | Struttura del database, contratto API, definizione dei KPI |
-| **P2 — necessarie per la demo** | entro il **13/11** (SAL 2) | D11–D18, D24–D27 | Caricamento dati 2024/2025, vendita 2026, dashboard |
+| **P2 — necessarie per la demo** | entro il **13/11** (SAL 2) | D11–D18, D24–D27, D33 | Caricamento dati 2024/2025, vendita 2026, dashboard |
 | **P3 — da chiudere prima della consegna** | entro il **27/11** | D19–D23, D28–D32 | Rifiniture, privacy finale, demo |
 | **Interne al team** (non per il cliente) | subito | T1–T4 | Strumenti Microsoft e hosting |
 
@@ -215,6 +215,14 @@ Corrispondenza con il documento tecnico: D1 = Q-02, D2 = Q-10, D3 = Q-03, D4 = Q
 **Cosa chiedevamo**: letture con un codice che non esiste in biglietteria: errori di scansione o biglietti non esportati?
 **Perché**: 70 casi (regola GAT-001).
 **Risposta**: risolta (9/11/2026). *Esito da annotare qui e nella regola GAT-001.*
+
+### D33. Preventivo inviato: lo stand va bloccato?
+**Cosa chiediamo**: quando si invia un preventivo a un espositore, lo stand va **bloccato** (riservato) o resta in vendita? Se va bloccato, **per quanti giorni**? Cosa succede alla scadenza (torna libero da solo)? Lo stesso stand può avere più preventivi aperti per clienti diversi?
+
+**Perché**: oggi il database blocca la doppia vendita **solo con il contratto firmato**. Il preventivo ha già uno stato (`SENT`, `EXPIRED`, …) ma non toglie lo stand dalla vendita. Se il cliente vuole il blocco, serve una regola in più (durata, scadenza, chi può sbloccare) nella vendita 2026.
+**Se non risponde**: nessun blocco col preventivo; lo stand si blocca solo alla firma del contratto. Il sistema avvisa il commerciale se ci sono altri preventivi aperti sullo stesso stand.
+**Blocca**: vendita 2026 e API commerciale (B3).
+**Risposta**: ______________________
 
 ---
 
