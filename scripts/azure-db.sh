@@ -14,7 +14,9 @@ set -euo pipefail
 export MSYS_NO_PATHCONV=1          # Git Bash su Windows: non alterare i percorsi /out
 cd "$(dirname "$0")/.."
 
-if [ -f .env ]; then set -a; . ./.env; set +a; fi
+# Il file .env modificato con un editor di Windows ha i ritorni a capo CR+LF: senza toglierli ogni valore
+# (utente, host, database) finirebbe con un carattere invisibile in piu' e l'accesso verrebbe rifiutato.
+if [ -f .env ]; then set -a; . <(tr -d '\r' < .env); set +a; fi
 
 PG_CLIENT_IMAGE="${PG_IMAGE:-postgres:16-alpine}"
 DST_CONTAINER="${DST_CONTAINER:-arcade-db}"
@@ -32,13 +34,15 @@ case "$cmd" in
     if [ -z "${PGPASSWORD:-}" ]; then
       read -r -s -p "Password di ${SRC_USER}@${SRC_HOST}: " PGPASSWORD; echo
     fi
+    PGPASSWORD="${PGPASSWORD%$'\r'}"   # la console di Windows aggiunge un CR alla riga digitata
     export PGPASSWORD
     mkdir -p local-data
     name="arcade-data-$(date +%Y%m%d-%H%M%S).dump"
     echo "Salvo i dati di ${SRC_DB} su ${SRC_HOST} (solo dati degli schemi core, staging, dq)..."
     docker run --rm -e PGPASSWORD -v "$HOSTDIR/local-data:/out" "$PG_CLIENT_IMAGE" \
       pg_dump "host=${SRC_HOST} port=${SRC_PORT:-5432} dbname=${SRC_DB} user=${SRC_USER} sslmode=${SRC_SSLMODE:-require}" \
-      --data-only --format=custom --no-owner --no-privileges "${SCHEMAS[@]}" --file="/out/$name"
+      --data-only --format=custom --no-owner --no-privileges "${SCHEMAS[@]}" --file="/out/$name" \
+      || { rm -f "local-data/$name"; echo "Backup NON riuscito: file parziale rimosso." >&2; exit 1; }
     echo "Fatto: local-data/$name ($(du -h "local-data/$name" | cut -f1))"
     ;;
 
