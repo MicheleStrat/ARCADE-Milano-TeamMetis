@@ -41,7 +41,7 @@ case "$cmd" in
     echo "Salvo i dati di ${SRC_DB} su ${SRC_HOST} (solo dati degli schemi core, staging, dq)..."
     docker run --rm -e PGPASSWORD -v "$HOSTDIR/local-data:/out" "$PG_CLIENT_IMAGE" \
       pg_dump "host=${SRC_HOST} port=${SRC_PORT:-5432} dbname=${SRC_DB} user=${SRC_USER} sslmode=${SRC_SSLMODE:-require}" \
-      --data-only --format=custom --no-owner --no-privileges "${SCHEMAS[@]}" --file="/out/$name" \
+      --data-only --format=custom --no-owner --no-privileges --enable-row-security "${SCHEMAS[@]}" --file="/out/$name" \
       || { rm -f "local-data/$name"; echo "Backup NON riuscito: file parziale rimosso." >&2; exit 1; }
     echo "Fatto: local-data/$name ($(du -h "local-data/$name" | cut -f1))"
     ;;
