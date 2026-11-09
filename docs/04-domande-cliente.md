@@ -13,8 +13,8 @@ Come usare questo documento:
 | Fascia | Quando serve la risposta | Domande | Cosa sblocca |
 |---|---|---|---|
 | **P1 — bloccanti** | entro il **30/10** (SAL 1: schema e API congelati) | D1–D10 | Struttura del database, contratto API, definizione dei KPI |
-| **P2 — necessarie per la demo** | entro il **13/11** (SAL 2) | D11–D18 | Caricamento dati 2024/2025, vendita 2026, dashboard |
-| **P3 — da chiudere prima della consegna** | entro il **27/11** | D19–D23 | Rifiniture, privacy finale, demo |
+| **P2 — necessarie per la demo** | entro il **13/11** (SAL 2) | D11–D18, D24–D27 | Caricamento dati 2024/2025, vendita 2026, dashboard |
+| **P3 — da chiudere prima della consegna** | entro il **27/11** | D19–D23, D28–D32 | Rifiniture, privacy finale, demo |
 | **Interne al team** (non per il cliente) | subito | T1–T4 | Strumenti Microsoft e hosting |
 
 Corrispondenza con il documento tecnico: D1 = Q-02, D2 = Q-10, D3 = Q-03, D4 = Q-05, D5 = Q-06, D6 = Q-04, D7 = Q-07, D8 = Q-01, D9 = Q-11, D12 = Q-08, D14 = Q-13, D15 = Q-09, D16 = Q-12, D17 = Q-14. Le altre sono nuove.
@@ -196,6 +196,26 @@ Corrispondenza con il documento tecnico: D1 = Q-02, D2 = Q-10, D3 = Q-03, D4 = Q
 **Blocca**: elenco prospect e rinnovi.
 **Risposta**: ______________________
 
+### D24. Letture dei tornelli prima dell'acquisto del biglietto — RISOLTA
+**Cosa chiedevamo**: i tornelli registrano letture **precedenti** all'acquisto del biglietto. Come è possibile?
+**Perché**: 13.575 letture (regola GAT-006), l'anomalia più numerosa nei dati caricati.
+**Risposta**: risolta (9/11/2026). *Esito da annotare qui e nella regola GAT-006.*
+
+### D25. Visite agli stand fuori orario — RISOLTA
+**Cosa chiedevamo**: visite fuori dall'orario di apertura (es. alle 18:00 con chiusura alle 17:30): sono vere o errori di orologio?
+**Perché**: 246 casi (regola VIS-003).
+**Risposta**: risolta (9/11/2026). *Esito da annotare qui e nella regola VIS-003.*
+
+### D26. Letture con esito KO — RISOLTA
+**Cosa chiedevamo**: che cosa sono le letture con esito KO: ingressi rifiutati o ripetuti?
+**Perché**: 486 casi (regola GAT-003).
+**Risposta**: risolta (9/11/2026). *Esito da annotare qui e nella regola GAT-003.*
+
+### D27. Codici biglietto inesistenti in biglietteria — RISOLTA
+**Cosa chiedevamo**: letture con un codice che non esiste in biglietteria: errori di scansione o biglietti non esportati?
+**Perché**: 70 casi (regola GAT-001).
+**Risposta**: risolta (9/11/2026). *Esito da annotare qui e nella regola GAT-001.*
+
 ---
 
 ## P3 — Da chiudere prima della consegna (entro il 27 novembre)
@@ -220,6 +240,29 @@ Corrispondenza con il documento tecnico: D1 = Q-02, D2 = Q-10, D3 = Q-03, D4 = Q
 **Cosa chiediamo**: nei biglietti Family (4 persone), la dashboard deve contare **biglietti** o **persone**? Per le presenze stimate vale lo stesso criterio?
 **Perché**: 2.420 biglietti Family nel 2024 e 2.901 nel 2025 valgono 4 persone ciascuno.
 **Se non risponde**: mostriamo entrambe le misure, separate.
+
+### D28. Superficie lorda dell'edificio e dei padiglioni — RISOLTA
+**Cosa chiedevamo**: la superficie lorda dell'edificio e dei padiglioni (nei dati non c'è).
+**Perché**: densità di presenze per m² e capienza.
+**Risposta**: risolta (9/11/2026). *Valori da annotare qui.*
+
+### D29. Stand fissi o modulari
+**Cosa chiediamo**: gli stand sono fissi o modulari (si possono unire e dividere)?
+**Perché**: per la mappa interattiva con trascinamento decide il modello dati (uno stand = un rettangolo, oppure più moduli).
+**Se non risponde**: stand fissi, uno stand = un'area.
+**Risposta**: ______________________
+
+### D30. Planimetria con coordinate — CHIUSA
+**Esito (9/11/2026)**: il cliente **non ha una planimetria**. Il team ha scaricato da internet quella di **Rho Fiera**. La mappa si basa su quella: va trattata come **riferimento**, non come pianta ufficiale. Le posizioni degli stand si disegnano a mano sopra la piantina.
+
+### D31. Telecamere al posto dei QR — CHIUSA
+**Esito (9/11/2026)**: servono **solo i conteggi**, non le immagini. Nessuna immagine o riconoscimento di persone nel database: si salvano solo numeri aggregati (per punto di conteggio e fascia oraria). Resta da chiarire con il cliente chi fa l'informativa privacy e dove si montano le telecamere.
+
+### D32. Sito pubblico per prenotare
+**Cosa chiediamo**: chi incassa, con quali condizioni e con quale IVA?
+**Perché**: il sito pubblico è una funzione a sé, non solo una vista sui dati esistenti.
+**Se non risponde**: fuori dal perimetro della demo.
+**Risposta**: ______________________
 
 ---
 
