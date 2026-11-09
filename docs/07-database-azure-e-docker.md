@@ -44,7 +44,7 @@ docker compose down -v
 La struttura viene dalle migrazioni, i **dati** dal dump.
 
 1. Nel file `.env` compila `SRC_HOST`, `SRC_DB`, `SRC_USER` (e `SRC_SSLMODE=require`). **La password non va nel file**: lo script la chiede.
-2. Il tuo indirizzo IP deve essere autorizzato nel firewall del server Azure.
+2. Il tuo indirizzo IP deve essere autorizzato nel firewall del server Azure. L'utente deve poter leggere tabelle **e sequenze** di `core`, `staging`, `dq` (es. `arcade_bid_etl` con `GRANT SELECT ON ALL SEQUENCES`).
 3. Salva i dati:
 
 ```bash
@@ -61,7 +61,7 @@ Il file del dump finisce in `local-data/`, cartella esclusa da Git. Contiene **d
 
 ## Se si perde il database su Azure
 
-Procedura di ripristino, **non ancora provata su Azure**:
+Procedura di ripristino (il backup da Azure è provato; il **ripristino verso** Azure no):
 
 1. Crea un nuovo database PostgreSQL su Azure e consenti l'estensione `pg_trgm` (parametro `azure.extensions`).
 2. Applica `V1..V5` in ordine, con un utente che può creare ruoli.
@@ -87,8 +87,9 @@ Azure di norma conserva anche backup automatici del server, per alcuni giorni: v
 
 | Verificato | Non verificato |
 |---|---|
-| Avvio con `docker compose`, rifiuto senza password, 58 tabelle, 4 procedure V5, 38 regole, 4 ruoli | Collegamento a **Azure reale**: la prova è stata fatta con un secondo PostgreSQL locale al posto di Azure |
+| Avvio con `docker compose`, rifiuto senza password, 58 tabelle, 4 procedure V5, 38 regole, 4 ruoli | Ripristino **verso** Azure (il backup *da* Azure è provato, vedi sotto) |
 | Salvataggio e ripristino: 58 tabelle e 292 righe identiche tra origine e copia, campi binari uguali | Versione di PostgreSQL del server Azure (deve avere la stessa versione maggiore di `PG_IMAGE`) |
+| Backup da **Azure reale** (9/11/2026, utente `arcade_bid_etl`): dump di 6,2 MB e ripristino nel Docker locale con 135 espositori, 198 contratti, 78.275 biglietti, 102.816 letture varchi, 2.451 visite stand, 48.967 anomalie | Firewall e SSL del ripristino |
 | Ripristino ripetuto senza duplicati; identificativi che ripartono senza collisioni | Ripristino su Azure, firewall e SSL |
 | | Prestazioni con milioni di righe (il caricamento completo di biglietteria e tornelli porta alcune centinaia di migliaia di righe) |
 
