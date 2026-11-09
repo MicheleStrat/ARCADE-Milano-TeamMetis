@@ -12,7 +12,7 @@ Fonti: l'elenco dei task è in [03-lavoro-futuro.md](03-lavoro-futuro.md); lo st
 | V5: procedure di caricamento di biglietteria, tornelli e visite stand (2024–2025) | Su ramo `alessandro` (31/10), **non ancora unito a `BID`**, non rivisto |
 | Caricamento dei file Excel (espositori, stand, listino, contratti) | **Non fatto** |
 | Backend Spring Boot, contratto OpenAPI, Angular | **Non fatti** |
-| Domande al cliente D1–D23 | Pronte, **senza risposta** |
+| Domande al cliente D1–D32 | Pronte; risolte D24–D28 e D30–D31, le altre senza risposta |
 | Conflitto con il BAD sull'accesso di Power Apps ai dati | **Aperto**: il BAD ha scelto l'accesso diretto a PostgreSQL (B-08), il BID l'accesso solo via API (R-03) |
 
 ## Date
