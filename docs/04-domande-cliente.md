@@ -13,7 +13,7 @@ Come usare questo documento:
 | Fascia | Quando serve la risposta | Domande | Cosa sblocca |
 |---|---|---|---|
 | **P1 — bloccanti** | entro il **30/10** (SAL 1: schema e API congelati) | D1–D10 | Struttura del database, contratto API, definizione dei KPI |
-| **P2 — necessarie per la demo** | entro il **13/11** (SAL 2) | D11–D18, D24–D27, D33 | Caricamento dati 2024/2025, vendita 2026, dashboard |
+| **P2 — necessarie per la demo** | entro il **13/11** (SAL 2) | D11–D18, D24–D27, D33, D34 | Caricamento dati 2024/2025, vendita 2026, dashboard |
 | **P3 — da chiudere prima della consegna** | entro il **27/11** | D19–D23, D28–D32 | Rifiniture, privacy finale, demo |
 | **Interne al team** (non per il cliente) | subito | T1–T4 | Strumenti Microsoft e hosting |
 
@@ -64,6 +64,8 @@ Corrispondenza con il documento tecnico: D1 = Q-02, D2 = Q-10, D3 = Q-03, D4 = Q
 **Se non risponde**: importo dovuto = regola 30/70 sul netto, e il pagato = dovuto, **marcato come assunto** nei dati.
 **Blocca**: KPI incassato, flussi di promemoria scadenze.
 **Risposta**: ______________________
+
+*Vedi anche D34: entro quanti giorni dall'accettazione del preventivo va versato l'acconto.*
 
 ### D5. IVA e definizione di ricavo (Q-06)
 **Cosa chiediamo**
@@ -222,6 +224,14 @@ Corrispondenza con il documento tecnico: D1 = Q-02, D2 = Q-10, D3 = Q-03, D4 = Q
 **Perché**: oggi il database blocca la doppia vendita **solo con il contratto firmato**. Il preventivo ha già uno stato (`SENT`, `EXPIRED`, …) ma non toglie lo stand dalla vendita. Se il cliente vuole il blocco, serve una regola in più (durata, scadenza, chi può sbloccare) nella vendita 2026.
 **Se non risponde**: nessun blocco col preventivo; lo stand si blocca solo alla firma del contratto. Il sistema avvisa il commerciale se ci sono altri preventivi aperti sullo stesso stand.
 **Blocca**: vendita 2026 e API commerciale (B3).
+**Risposta**: ______________________
+
+### D34. Preventivo accettato: entro quanti giorni l'acconto?
+**Cosa chiediamo**: quando l'espositore accetta il preventivo, entro quanti giorni deve versare il **primo acconto**? Il termine parte dall'accettazione o dalla firma del contratto? Se l'acconto non arriva in tempo, cosa succede: il preventivo decade, lo stand torna libero, o si invia solo un sollecito? E il saldo: scade in una data fissa o a un numero di giorni dall'evento?
+
+**Perché**: nei dati abbiamo solo le **scadenze** di acconto e saldo, non la regola che le produce: 121 acconti risultano pagati dopo la scadenza. Per proporre le scadenze al commerciale e mandare i promemoria serve la regola (D4 chiede come si calcola l'importo, questa chiede **quando**).
+**Se non risponde**: la scadenza dell'acconto resta inserita a mano dal commerciale; nessuna decadenza automatica, solo promemoria.
+**Blocca**: scadenze automatiche e promemoria (flussi di Power Automate), vendita 2026.
 **Risposta**: ______________________
 
 ---
