@@ -10,6 +10,7 @@ Questo progetto è formativo: Factory Studios (cliente fittizio) organizza ARCAD
 |---|---|---|
 | [01-lavoro-svolto.md](01-lavoro-svolto.md) | Cronologia di **tutto ciò che è stato fatto**, con motivazioni e risultati reali | Per capire a che punto siamo |
 | [02-guida-database.md](02-guida-database.md) | Spiegazione semplice del database, **come avviarlo e provarlo** | Per usarlo o spiegarlo |
+| [07-database-azure-e-docker.md](07-database-azure-e-docker.md) | Database condiviso su Azure e **copia locale in Docker**: avvio, copia dei dati, ripristino | Per i test e come riserva |
 | [03-lavoro-futuro.md](03-lavoro-futuro.md) | **Cosa resta da fare**, in ordine, con scadenze e responsabilità BID/BAD | Per pianificare |
 | [04-domande-cliente.md](04-domande-cliente.md) | **Domande per il cliente** al kickoff, ordinate per priorità, con assunzioni di lavoro | Per preparare la riunione |
 | [api/README.md](api/README.md) | **Contratto API** (OpenAPI v1 bozza): convenzioni, ruoli, errori, punti aperti. File: [api/openapi.yaml](api/openapi.yaml) | Per backend, Angular e BAD |

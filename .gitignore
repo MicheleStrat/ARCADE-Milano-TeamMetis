@@ -16,3 +16,10 @@ target/
 node_modules/
 dist/
 *.log
+
+# Eccezione: il file di esempio e' versionato
+!.env.example
+
+# Copie dei dati del cliente (dump del database): mai su GitHub
+local-data/
+*.dump

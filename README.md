@@ -38,6 +38,7 @@ Parti da [docs/00-indice.md](docs/00-indice.md).
 |---|---|
 | [docs/01-lavoro-svolto.md](docs/01-lavoro-svolto.md) | Cosa è stato fatto e come è stato verificato |
 | [docs/02-guida-database.md](docs/02-guida-database.md) | Come è fatto il database, avvio locale e test |
+| [docs/07-database-azure-e-docker.md](docs/07-database-azure-e-docker.md) | Database su Azure e copia locale in Docker |
 | [docs/03-lavoro-futuro.md](docs/03-lavoro-futuro.md) | Attività rimanenti con scadenze |
 | [docs/04-domande-cliente.md](docs/04-domande-cliente.md) | Domande per il cliente, ordinate per priorità |
 | [docs/data-model.md](docs/data-model.md) | Progettazione tecnica completa del modello dati |
@@ -45,18 +46,17 @@ Parti da [docs/00-indice.md](docs/00-indice.md).
 
 ## Avvio rapido del database (locale, con Docker)
 
-Dettagli e risoluzione dei problemi: [docs/02-guida-database.md](docs/02-guida-database.md).
+Dettagli: [docs/07-database-azure-e-docker.md](docs/07-database-azure-e-docker.md) (database su Azure e copia locale) e [docs/02-guida-database.md](docs/02-guida-database.md) (struttura e problemi comuni).
+
+Copia `.env.example` in `.env`, scegli `POSTGRES_PASSWORD`, poi:
 
 ```bash
-docker run -d --name arcade-db -e POSTGRES_PASSWORD=test -e POSTGRES_DB=arcade -v "$(pwd)/database/migrations:/m:ro" postgres:16-alpine
-docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V1__core_schema.sql
-docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V2__reference_data.sql
-docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V3__roles_grants_rls.sql
-docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V4__analytics.sql
-docker exec arcade-db psql -U postgres -d arcade -v ON_ERROR_STOP=1 -f /m/V5__ingest_ticketing_turnstiles_stand_visits.sql
+docker compose up -d
 ```
 
-La password `test` serve **solo** per prove locali con un database usa e getta. Nel repository non ci sono password, token o segreti: gli account di login dei ruoli del database si creano per ambiente.
+Al primo avvio vengono eseguite in ordine le migrazioni V1-V5. Per ripartire da zero: `docker compose down -v` (richiede lo stesso file `.env`).
+
+La password del database locale la scegli tu nel file `.env` e serve solo sul tuo computer. Nel repository non ci sono password, token o segreti: gli account di login dei ruoli del database si creano per ambiente.
 
 ## Limiti noti
 
