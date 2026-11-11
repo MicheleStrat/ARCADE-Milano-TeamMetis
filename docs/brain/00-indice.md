@@ -13,6 +13,7 @@ Tutti leggono tutto. Prima di proporre qualcosa, controlla che non contraddica u
 
 ## Note di supporto
 - [[kpi]] – definizioni degli indicatori da concordare col cliente
+- [[modello-dati]] – com'è fatto il database e cosa aggiunge ogni migrazione V1…V8
 - [[anomalie-dati]] – errori trovati nei dati e come li gestiamo
 - [[glossario]] – termini del progetto
 - [[calendario]] – date chiave, SAL e controlli settimanali
@@ -23,9 +24,9 @@ Il cliente vuole una piattaforma che faccia due cose: **vendere meglio** spazi e
 
 - **BAD**: processo commerciale, Power Apps back-office, Power Automate, Power BI direzionale
 - **BID**: PostgreSQL, backend Java Spring Boot, ETL, frontend Angular
-- App di scansione allo stand: assegnazione ancora aperta (A-07 in [[contesto-BAD]])
+- Visite e contatti agli stand: QR per i visitatori e telecamere simulate, niente app di scansione allo stand (B-25 in [[contesto-BAD]])
 
-Punto d'incontro: il database PostgreSQL condiviso.
+Punto d'incontro: il database PostgreSQL condiviso su Azure (vedi [[modello-dati]]).
 
 ## Requisiti trasversali (non negoziabili)
 - I numeri devono tornare tra le diverse viste
