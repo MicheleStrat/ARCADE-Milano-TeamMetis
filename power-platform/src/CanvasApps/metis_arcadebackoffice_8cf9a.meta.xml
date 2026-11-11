@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CanvasApp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>metis_arcadebackoffice_8cf9a</Name>
+  <AppVersion>2026-11-11T16:10:03Z</AppVersion>
+  <Status>Ready</Status>
+  <CreatedByClientVersion>3.26102.13.0</CreatedByClientVersion>
+  <MinClientVersion>3.26102.13.0</MinClientVersion>
+  <Tags>{"primaryDeviceWidth":"1366","primaryDeviceHeight":"768","supportsPortrait":"true","supportsLandscape":"true","primaryFormFactor":"Tablet","showStatusBar":"false","publisherVersion":"3.26102.13","minimumRequiredApiVersion":"2.2.0","hasComponent":"true","hasUnlockedComponent":"true","isUnifiedRootApp":"false","m365CopilotSettingValue":"0"}</Tags>
+  <IsCdsUpgraded>0</IsCdsUpgraded>
+  <GalleryItemId xsi:nil="true"></GalleryItemId>
+  <BackgroundColor>RGBA(0,176,240,1)</BackgroundColor>
+  <DisplayName>ARCADE Back-office</DisplayName>
+  <Description xsi:nil="true"></Description>
+  <CommitMessage xsi:nil="true"></CommitMessage>
+  <Publisher xsi:nil="true"></Publisher>
+  <AuthorizationReferences>[]</AuthorizationReferences>
+  <ConnectionReferences>{"05c1e68c-54f1-4886-8f62-67b62876d1d5":{"id":"/providers/microsoft.powerapps/apis/shared_postgresql","xrmConnectionReferenceLogicalName":"metis_sharedpostgresql_7682c","displayName":"PostgreSQL","executionRestrictions":{"version":1,"modifiedOn":"2026-11-11 16:10:02","appVer":"3.26102.13","apiId":"/providers/microsoft.powerapps/apis/shared_postgresql","apiVer":1,"policy":"{\"type\":\"tabular\",\"dataSources\":{\"[core].[app_user]\":[\"get\"],\"[core].[app_role]\":[\"get\"],\"[core].[edition]\":[\"get\"],\"[core].[user_role]\":[\"get\"],\"[core].[exhibitor]\":[\"get\"],\"[core].[exhibitor_category]\":[\"get\"],\"[core].[contract]\":[\"get\"],\"[core].[contract_stand]\":[\"get\"],\"[core].[stand_edition]\":[\"get\"],\"[core].[stand]\":[\"get\"],\"[core].[quote]\":[\"get\"],\"[core].[preemption]\":[\"get\"]}}"},"iconUri":"https://static.powerapps.com/resource/ppcr/releases/v1.0.1830/1.0.1830.5077/postgresql/icon.png","dataSources":["core.app_user","core.app_role","core.edition","core.user_role","core.exhibitor","core.exhibitor_category","core.contract","core.stand_edition","core.stand","core.quote","core.preemption","core.contract_stand"],"dependencies":[],"dependents":[],"parameterHints":{},"parameterHintsV2":{},"isOnPremiseConnection":false,"sharedConnectionId":"1cd63e8e-4ddc-4f78-a9d6-89a93e78c0c7","bypassConsent":false,"dataSets":{"default":{"dataSources":{"core.app_user":{"tableName":"[core].[app_user]"},"core.app_role":{"tableName":"[core].[app_role]"},"core.edition":{"tableName":"[core].[edition]"},"core.user_role":{"tableName":"[core].[user_role]"},"core.exhibitor":{"tableName":"[core].[exhibitor]"},"core.exhibitor_category":{"tableName":"[core].[exhibitor_category]"},"core.contract":{"tableName":"[core].[contract]"},"core.stand_edition":{"tableName":"[core].[stand_edition]"},"core.stand":{"tableName":"[core].[stand]"},"core.quote":{"tableName":"[core].[quote]"},"core.preemption":{"tableName":"[core].[preemption]"},"core.contract_stand":{"tableName":"[core].[contract_stand]"}}}},"apiTier":"Premium","actions":["providers/PowerPlatform.Governance/Operations/Read"]}}</ConnectionReferences>
+  <DatabaseReferences>{}</DatabaseReferences>
+  <AppComponents>[]</AppComponents>
+  <AppComponentDependencies>[]</AppComponentDependencies>
+  <CanConsumeAppPass>1</CanConsumeAppPass>
+  <CanvasAppType>0</CanvasAppType>
+  <BypassConsent>0</BypassConsent>
+  <AdminControlBypassConsent>0</AdminControlBypassConsent>
+  <EmbeddedApp xsi:nil="true"></EmbeddedApp>
+  <IntroducedVersion>1.0</IntroducedVersion>
+  <CdsDependencies>{"cdsdependencies":[{"logicalname":"metis_sharedpostgresql_7682c","componenttype":10169,"componenttypeplatformname":"ConnectionReference"}]}</CdsDependencies>
+  <IsCustomizable>1</IsCustomizable>
+  <BackgroundImageUri>/CanvasApps/metis_arcadebackoffice_8cf9a_BackgroundImageUri</BackgroundImageUri>
+  <DocumentUri>/CanvasApps/metis_arcadebackoffice_8cf9a_DocumentUri.msapp</DocumentUri>
+  <AdditionalUris>
+    <AdditionalUri>/CanvasApps/metis_arcadebackoffice_8cf9a_AdditionalUris0_identity.json</AdditionalUri>
+  </AdditionalUris>
+</CanvasApp>
