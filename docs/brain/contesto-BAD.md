@@ -5,7 +5,7 @@
 >
 > **Versione per il repo**: il repository è pubblico, quindi qui mancano indirizzo del server, nome dell'admin, email personali e dettagli del firewall. Quelli restano solo nel contesto privato del BAD.
 
-Ultimo aggiornamento: 11 novembre 2026 (ruoli B-36, numerazione B-37, V8 eseguita B-38)
+Ultimo aggiornamento: 13 novembre 2026 (ruoli B-36, numerazione B-37, V8 eseguita B-38, Power BI in Import B-39)
 Regola: qui vanno solo decisioni prese e progressi verificati del team BAD. Le cose del BID stanno in [[contesto-BID]].
 
 ## Chi siamo e cosa facciamo
@@ -64,6 +64,7 @@ Regola: qui vanno solo decisioni prese e progressi verificati del team BAD. Le c
 | B-36 | **Ruoli nelle app** (chiude A-13 lato BAD, da comunicare al BID). Aggiunto il ruolo **`DIRECTION`** in `core.app_role` (riga di dati, schema invariato). Le app riconoscono l'utente confrontando **`Lower(User().Email)`** con `core.app_user.username` (sempre in minuscolo) e leggono i ruoli da `core.user_role`; chi ha più ruoli vede l'**unione** delle voci. Un utente nuovo va prima creato in `core.app_user`, poi gli si assegna il ruolo (senza utente l'INSERT del ruolo non fa nulla, `INSERT 0 0`). Assegnati l'11/11 da Fabrizio con l'admin: Fabrizio **ADMIN + DIRECTION**, più un secondo utente del team con **COMMERCIAL** (account del tenant della scuola). Nota: nello schema SCANNER è descritto come "scansione stand", noi lo usiamo per i varchi (B-23) | 11/11/2026 |
 | B-37 | **Numerazione** di preventivi e contratti: `PV<anno>-<progressivo a 4 cifre>` e `C<anno>-<progressivo a 4 cifre>` (es. `PV2026-0001`, `C2026-0001`), calcolata dall'app come massimo dell'anno + 1. I duplicati sono impossibili perché `quote_number` e `contract_number` sono **UNIQUE** nel DB: se due persone salvano nello stesso istante il secondo salvataggio viene rifiutato e l'app ritenta con il numero successivo (`IfError`, al massimo 3 tentativi). La doppia vendita dello stesso stand è bloccata dal vincolo `ux_contract_stand_active` | 11/11/2026 |
 | B-38 | **V8 eseguita sul server Azure** da Fabrizio l'11/11 con l'admin (chiude A-19), **prima dell'ok del BID**: scelta di Fabrizio perché la modifica non cambia nulla per il BID (i loro 5 test danno lo stesso output con e senza V8); il BID va avvisato. Regole per tutti i `Patch` di creazione: (1) la **chiave primaria si passa sempre a 0**; (2) vanno passate **tutte le colonne NOT NULL**, anche quelle con default nel DB, perché il connettore le vuole esplicite e `Defaults()` non le riempie (es. `created_at: Now()`, `discount_pct: 0`, `row_version: 0`). Elenco completo per le 8 tabelle in `colonne-obbligatorie-power-apps.md` | 11/11/2026 |
+| B-39 | **Power BI in modalità Import** (BAD-06-01): il report legge le viste `analytics` in Import, non in DirectQuery: circa 200.000 righe, dati storici che cambiano solo ai ricaricamenti, report più veloce e nessun carico sul server durante la consultazione. Connessione con l'utente in sola lettura `arcade_powerbi`. Nessun gateway: il database è su Azure e il Service si collega direttamente. Aggiornamento pianificato ogni giorno alle 07:00 | 13/11/2026 |
 
 Definizioni complete dei KPI e registro assunzioni: [[kpi]].
 
