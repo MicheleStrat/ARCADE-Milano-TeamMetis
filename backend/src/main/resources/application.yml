@@ -1,0 +1,30 @@
+# I valori arrivano dal file .env nella radice del repository (non versionato) o dalle variabili d'ambiente.
+spring:
+  application:
+    name: arcade-backend
+  config:
+    import: "optional:file:../.env[.properties]"
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:arcade}
+    username: ${BACKEND_DB_USER:arcade_backend}
+    password: ${BACKEND_DB_PASSWORD:}
+  flyway:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:arcade}
+    user: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:}
+    locations: filesystem:../database/migrations
+    # Il database locale e' gia' stato creato da Docker con V1..V5: vedi BaselineExistingSchemaStrategy.
+    baseline-version: "5"
+
+server:
+  servlet:
+    context-path: /api/v1
+
+arcade:
+  jwt:
+    secret: ${JWT_DEV_SECRET:}
+    ttl-minutes: 60
+
+logging:
+  pattern:
+    level: "%5p [%X{traceId:-}]"

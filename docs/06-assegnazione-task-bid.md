@@ -21,7 +21,7 @@ Fonti: l'elenco dei task è in [03-lavoro-futuro.md](03-lavoro-futuro.md); lo st
 |---|---|
 | Ven 6/11 | Controllo di avanzamento settimanale |
 | Mer 11/11 | Fine sviluppo funzioni per il SAL 2; poi solo integrazione e prove |
-| **Ven 13/11** | **SAL 2**: edizioni 2024/2025 caricate, anomalie e riconciliazione, un contratto 2026 venduto, prime dashboard |
+| **Ven 4/12** | **SAL 2**: edizioni 2024/2025 caricate, anomalie e riconciliazione, un contratto 2026 venduto, prime dashboard |
 | 16/11 – 4/12 | Sviluppo autonomo e integrazione |
 | Ven 4/12 | Presentazione finale |
 
