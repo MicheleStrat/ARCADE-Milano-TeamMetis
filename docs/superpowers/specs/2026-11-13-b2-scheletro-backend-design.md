@@ -1,6 +1,6 @@
 # B2 — Scheletro del backend Spring Boot: specifica
 
-**Data:** 13 novembre 2026 · **Responsabile:** Mattia Billong · **Stato:** da approvare
+**Data:** 13 novembre 2026 · **Responsabile:** Mattia Billong · **Stato:** implementata; test automatici verdi (29); prova sul database locale `arcade-db` non ancora fatta (vedi backend/README.md)
 
 ## 1. Obiettivo
 
