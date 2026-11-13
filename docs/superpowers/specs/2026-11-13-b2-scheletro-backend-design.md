@@ -64,7 +64,7 @@ Per ogni richiesta: `BEGIN`, `SET LOCAL ROLE <ruolo>`, per l'espositore `set_con
 ## 6. Migrazioni (Flyway)
 
 - Flyway legge le migrazioni da `database/migrations` (`classpath` non usato: nessuna copia dei file).
-- Il database locale è già stato creato da quelle stesse migrazioni tramite Docker. Flyway quindi parte da un riferimento alla **versione 5** (`baselineOnMigrate=true`, `baselineVersion=5`): non le riesegue.
+- Il database locale è già stato creato da quelle stesse migrazioni tramite Docker, senza lo storico di Flyway. `baselineOnMigrate` non è affidabile qui (lo schema `public` può sembrare vuoto e Flyway rieseguirebbe V1), quindi `BaselineExistingSchemaStrategy` controlla se esiste `core.edition`: se sì e lo storico manca, imposta il riferimento alla **versione 5** (`baseline-version: 5`) senza rieseguire nulla; se il database è vuoto migra normalmente.
 - Flyway usa un account **diverso** da quello di esecuzione (`arcade_backend` non può creare tabelle). In sviluppo usa l'utente del database locale (`POSTGRES_USER`).
 - Le migrazioni future (V6 e successive) si aggiungono nella stessa cartella.
 
