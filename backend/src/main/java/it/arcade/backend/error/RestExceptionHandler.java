@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -53,8 +54,22 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<Problem> unexpected(Exception e) {
+        // Le eccezioni standard di Spring MVC (415, 406, parametri mancanti...) portano gia' il loro stato HTTP.
+        if (e instanceof ErrorResponse er && er.getStatusCode().is4xxClientError()) {
+            HttpStatus status = HttpStatus.valueOf(er.getStatusCode().value());
+            return reply(status, codeFor(status), status.getReasonPhrase(), null);
+        }
         log.error("Errore non previsto", e);
         return reply(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Errore interno", null);
+    }
+
+    private static String codeFor(HttpStatus status) {
+        return switch (status) {
+            case BAD_REQUEST -> "INVALID_REQUEST";
+            case NOT_ACCEPTABLE -> "NOT_ACCEPTABLE";
+            case UNSUPPORTED_MEDIA_TYPE -> "UNSUPPORTED_MEDIA_TYPE";
+            default -> "HTTP_" + status.value();
+        };
     }
 
     private ResponseEntity<Problem> reply(HttpStatus status, String code, String title, String detail) {

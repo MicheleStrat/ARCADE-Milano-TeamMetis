@@ -47,6 +47,13 @@ class DevTokenApiTest extends ApiTest {
     }
 
     @Test
+    void un_content_type_non_supportato_risponde_415_non_500() throws Exception {
+        mvc.perform(post("/dev/token").contentType(MediaType.TEXT_PLAIN).content("x"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.code").value("UNSUPPORTED_MEDIA_TYPE"));
+    }
+
+    @Test
     void rifiuta_un_corpo_malformato() throws Exception {
         mvc.perform(post("/dev/token").contentType(MediaType.APPLICATION_JSON).content("{non json"))
                 .andExpect(status().isBadRequest())

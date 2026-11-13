@@ -22,21 +22,31 @@ public class PortalController {
     }
 
     /**
-     * Usa SEMPRE il ruolo PORTAL, anche se il token ha pure un ruolo staff: la query non ha un filtro
-     * sull'id, e' la sicurezza per riga del database a limitare il risultato al proprio espositore.
+     * Usa SEMPRE il ruolo PORTAL, anche se il token ha pure un ruolo staff. L'isolamento ha due livelli:
+     * il filtro sull'id preso dal token (autorizzazione nel backend) e la sicurezza per riga del database
+     * (difesa in profondita'). Senza exhibitor_id nel token si risponde 404 senza interrogare il database.
      */
     @GetMapping("/portal/me")
     public PortalProfile me(@AuthenticationPrincipal Jwt jwt) {
         CurrentUser user = CurrentUser.from(jwt);
-        Optional<PortalProfile> profile = db.read(DbRole.PORTAL, user.exhibitorId(), jdbc -> jdbc.sql("""
+        Integer exhibitorId = user.exhibitorId();
+        if (exhibitorId == null) {
+            throw notFound();
+        }
+        Optional<PortalProfile> profile = db.read(DbRole.PORTAL, exhibitorId, jdbc -> jdbc.sql("""
                         SELECT e.exhibitor_id, e.exhibitor_code, e.legal_name, c.name AS category_name
                           FROM core.exhibitor e
                           JOIN core.exhibitor_category c ON c.category_id = e.category_id
+                         WHERE e.exhibitor_id = :id
                         """)
+                .param("id", exhibitorId)
                 .query((rs, n) -> new PortalProfile(rs.getInt("exhibitor_id"), rs.getString("exhibitor_code"),
                         rs.getString("legal_name"), rs.getString("category_name")))
                 .optional());
-        return profile.orElseThrow(() ->
-                ApiException.notFound("PORTAL_PROFILE_NOT_FOUND", "Profilo espositore non trovato"));
+        return profile.orElseThrow(PortalController::notFound);
+    }
+
+    private static ApiException notFound() {
+        return ApiException.notFound("PORTAL_PROFILE_NOT_FOUND", "Profilo espositore non trovato");
     }
 }

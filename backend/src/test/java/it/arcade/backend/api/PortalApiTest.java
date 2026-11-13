@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import it.arcade.backend.security.Role;
 import it.arcade.backend.support.ApiTest;
+import it.arcade.backend.support.PostgresSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 
@@ -45,6 +46,20 @@ class PortalApiTest extends ApiTest {
     void un_exhibitor_id_inesistente_risponde_404() throws Exception {
         mvc.perform(get("/portal/me").header(HttpHeaders.AUTHORIZATION, bearer(999999, Role.EXHIBITOR)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void il_filtro_sull_id_vale_anche_se_la_rls_fosse_permissiva() throws Exception {
+        int alfa = exhibitorId("ESP901");
+        var owner = PostgresSupport.owner();
+        owner.execute("CREATE POLICY test_permissiva ON core.exhibitor FOR SELECT TO arcade_portal USING (true)");
+        try {
+            mvc.perform(get("/portal/me").header(HttpHeaders.AUTHORIZATION, bearer(alfa, Role.EXHIBITOR)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.exhibitorCode").value("ESP901"));
+        } finally {
+            owner.execute("DROP POLICY test_permissiva ON core.exhibitor");
+        }
     }
 
     @Test
