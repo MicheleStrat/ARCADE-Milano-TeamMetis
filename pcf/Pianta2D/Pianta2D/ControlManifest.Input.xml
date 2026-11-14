@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <!-- Pianta 2D della schermata Planimetria (B-45): disposizione indicativa degli stand ricavata dai codici, proporzioni Fiera Milano Rho. -->
+  <control namespace="Arcade" constructor="Pianta2D" version="0.0.12"
+           display-name-key="Pianta 2D ARCADE"
+           description-key="Pianta indicativa di un padiglione con gli stand colorati per stato commerciale"
+           control-type="standard">
+    <external-service-usage enabled="false"></external-service-usage>
+    <property name="StandJson" display-name-key="Stand (JSON)"
+              description-key="Elenco degli stand del padiglione: codice, mq, posizione, stato. Vuoto = dati demo."
+              of-type="Multiple" usage="input" required="false" />
+    <property name="Padiglione" display-name-key="Padiglione"
+              description-key="Testo del padiglione mostrato in alto"
+              of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="Selezionato" display-name-key="Selezionato"
+              description-key="Codice dello stand da evidenziare"
+              of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="StandCliccato" display-name-key="Stand cliccato"
+              description-key="Codice dello stand toccato per ultimo"
+              of-type="SingleLine.Text" usage="output" />
+    <resources>
+      <code path="index.ts" order="1" />
+    </resources>
+  </control>
+</manifest>
