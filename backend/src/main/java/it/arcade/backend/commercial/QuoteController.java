@@ -40,6 +40,18 @@ public class QuoteController {
         return toResponse(quotes.create(jwt.getSubject(), key, body));
     }
 
+    @PostMapping("/quotes/{quoteId}/send")
+    public Quote send(@PathVariable int quoteId,
+                      @RequestHeader(name = "If-Match", required = false) String ifMatch) {
+        return quotes.transition(quoteId, ifMatch, "DRAFT", "SENT");
+    }
+
+    @PostMapping("/quotes/{quoteId}/confirm")
+    public Quote confirm(@PathVariable int quoteId,
+                         @RequestHeader(name = "If-Match", required = false) String ifMatch) {
+        return quotes.transition(quoteId, ifMatch, "SENT", "CONFIRMED");
+    }
+
     @GetMapping("/quotes/{quoteId}")
     public Quote get(@AuthenticationPrincipal Jwt jwt, @PathVariable int quoteId) {
         return quotes.get(quoteId, DbRole.forUser(CurrentUser.from(jwt)));

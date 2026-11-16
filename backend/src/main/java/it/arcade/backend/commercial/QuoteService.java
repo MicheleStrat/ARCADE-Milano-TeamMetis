@@ -60,6 +60,46 @@ public class QuoteService {
                 .orElseThrow(() -> ApiException.notFound("NOT_FOUND", "Preventivo non trovato"));
     }
 
+    private record QuoteState(String status, int rowVersion, boolean expired) {}
+
+    /** DRAFT -> SENT (send) e SENT -> CONFIRMED (confirm), con controllo della versione (If-Match). */
+    public Quote transition(int quoteId, String ifMatch, String from, String to) {
+        int expected = parseIfMatch(ifMatch);
+        return db.write(jdbc -> {
+            QuoteState s = jdbc.sql("""
+                            SELECT status, row_version, (valid_until IS NOT NULL AND valid_until < CURRENT_DATE) AS expired
+                              FROM core.quote WHERE quote_id = :id FOR UPDATE""")
+                    .param("id", quoteId)
+                    .query((rs, n) -> new QuoteState(rs.getString(1), rs.getInt(2), rs.getBoolean(3)))
+                    .optional()
+                    .orElseThrow(() -> ApiException.notFound("NOT_FOUND", "Preventivo non trovato"));
+            if (s.rowVersion() != expected) {
+                throw ApiException.conflict("OPTIMISTIC_LOCK_CONFLICT", "Il preventivo e' stato modificato nel frattempo");
+            }
+            if (!from.equals(s.status())) {
+                throw ApiException.conflict("INVALID_STATE_TRANSITION",
+                        "Passaggio non permesso dallo stato " + s.status());
+            }
+            if ("CONFIRMED".equals(to) && s.expired()) {
+                throw ApiException.conflict("QUOTE_EXPIRED", "Preventivo scaduto");
+            }
+            jdbc.sql("UPDATE core.quote SET status = :to, row_version = row_version + 1 WHERE quote_id = :id")
+                    .param("to", to).param("id", quoteId).update();
+            return quotes.find(jdbc, quoteId).orElseThrow();
+        });
+    }
+
+    private static int parseIfMatch(String value) {
+        if (value == null || value.isBlank()) {
+            throw ApiException.badRequest("VALIDATION_ERROR", "Intestazione If-Match obbligatoria (rowVersion)");
+        }
+        try {
+            return Integer.parseInt(value.trim().replace("\"", ""));
+        } catch (NumberFormatException e) {
+            throw ApiException.badRequest("VALIDATION_ERROR", "If-Match deve essere un numero (rowVersion)");
+        }
+    }
+
     private void validateShape(QuoteCreate req) {
         if (req == null) {
             throw ApiException.badRequest("VALIDATION_ERROR", "Corpo della richiesta mancante");
