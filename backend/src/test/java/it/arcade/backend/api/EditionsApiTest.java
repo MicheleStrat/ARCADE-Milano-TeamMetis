@@ -18,7 +18,7 @@ class EditionsApiTest extends ApiTest {
     void lo_staff_legge_le_edizioni_con_i_giorni() throws Exception {
         mvc.perform(get("/editions").header(HttpHeaders.AUTHORIZATION, bearer(null, Role.COMMERCIAL)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.length()").value(5))
                 .andExpect(jsonPath("$[0].year").value(2024))
                 .andExpect(jsonPath("$[0].status").value("CLOSED"))
                 .andExpect(jsonPath("$[0].days.length()").value(3))
@@ -32,7 +32,7 @@ class EditionsApiTest extends ApiTest {
     void l_espositore_puo_leggere_le_edizioni() throws Exception {
         mvc.perform(get("/editions").header(HttpHeaders.AUTHORIZATION, bearer(exhibitorId("ESP901"), Role.EXHIBITOR)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3));
+                .andExpect(jsonPath("$.length()").value(5));
     }
 
     @Test

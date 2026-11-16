@@ -48,6 +48,16 @@ cd backend
 
 Servono Docker avviato (i test creano un PostgreSQL in container). I test non toccano il database locale.
 
+## Preventivi e contratti (B3a)
+
+Endpoint: `POST /quotes` (con `Idempotency-Key`), `GET /quotes/{id}`, `POST /quotes/{id}/send` e `/confirm` (con `If-Match`), `POST /quotes/{id}/contract` (con `Idempotency-Key`), `GET /contracts/{id}`. Specifica: `docs/superpowers/specs/2026-11-16-b3a-contratto-venduto-design.md`.
+
+Impostazioni (assunzioni da confermare): `arcade.quote.reservation-days` (14) e `arcade.contract.deposit-due-days` (15).
+
+**Regola per le migrazioni dopo V5:** devono essere ripetibili (`IF NOT EXISTS`, vincoli protetti da `DO`), perché Docker le esegue su un volume nuovo e Flyway, che parte dal riferimento alla versione 5, può rieseguirle.
+
+Limiti: il listino e le date 2026 reali non esistono nel database; la conversione risponde `422 EDITION_DATES_MISSING` finché mancano i giorni di apertura. Provato solo con dati di test.
+
 ## Limiti noti
 
 - Il token di sviluppo usa una chiave locale: Entra ID non è configurato né provato.

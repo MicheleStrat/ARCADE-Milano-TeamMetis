@@ -28,7 +28,8 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     ResponseEntity<Problem> api(ApiException e) {
-        return reply(e.status(), e.code(), e.title(), e.detail());
+        return ResponseEntity.status(e.status()).contentType(PROBLEM)
+                .body(problems.problem(e.status(), e.code(), e.title(), e.detail(), e.errors()));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
@@ -41,9 +42,14 @@ public class RestExceptionHandler {
         return reply(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "Metodo non consentito", null);
     }
 
+    @ExceptionHandler(org.springframework.beans.TypeMismatchException.class)
+    ResponseEntity<Problem> typeMismatch(org.springframework.beans.TypeMismatchException e) {
+        return reply(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Parametro non valido", null);
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<Problem> unreadable(HttpMessageNotReadableException e) {
-        return reply(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Corpo della richiesta non valido", null);
+        return reply(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Corpo della richiesta non valido", null);
     }
 
     /** Questi li gestisce la catena di sicurezza (401/403): qui non vanno trasformati in 500. */
@@ -65,7 +71,7 @@ public class RestExceptionHandler {
 
     private static String codeFor(HttpStatus status) {
         return switch (status) {
-            case BAD_REQUEST -> "INVALID_REQUEST";
+            case BAD_REQUEST -> "VALIDATION_ERROR";
             case NOT_ACCEPTABLE -> "NOT_ACCEPTABLE";
             case UNSUPPORTED_MEDIA_TYPE -> "UNSUPPORTED_MEDIA_TYPE";
             default -> "HTTP_" + status.value();

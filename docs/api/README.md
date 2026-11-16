@@ -57,11 +57,16 @@ Quando esisterà il backend con Springdoc, il file generato va confrontato con q
 | `DUPLICATE_REQUEST` | 409 | Stessa chiave con contenuto diverso |
 | `IMPORT_ALREADY_DONE` | 409 | File già importato (risposta con il batch esistente) |
 | `PAYMENT_EXCEEDS_CONTRACT` | 422 | Incassi oltre il valore netto del contratto |
+| `EDITION_DATES_MISSING` | 422 | L'edizione non ha giorni di apertura: la scadenza del saldo non si calcola |
+| `PRICE_LIST_CONDITIONS_MISSING` | 422 | Il listino non indica acconto o giorni del saldo |
+| `INVALID_STATE_TRANSITION` | 409 | Passaggio di stato non permesso |
+| `STAND_NOT_SELLABLE` | 422 | Stand libero o non commercializzabile |
 | `PREEMPTION_EXPIRED` | 422 | Prelazione oltre la scadenza |
 | `PAYLOAD_TOO_LARGE` | 413 | Troppi elementi o file troppo grande |
 | `RATE_LIMITED` | 429 | Troppe richieste (`Retry-After`) |
 
 I codici sono parte del contratto: non si cambiano né si rimuovono dopo il congelamento.
+Aggiunti il 2026-11-16 con B3a: `EDITION_DATES_MISSING`, `PRICE_LIST_CONDITIONS_MISSING`, `INVALID_STATE_TRANSITION`, `STAND_NOT_SELLABLE` (modifica compatibile, da comunicare al BAD e a chi sviluppa Angular).
 
 ## Collegamento con il database
 

@@ -3,6 +3,7 @@ package it.arcade.backend.error;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,12 @@ public class ProblemWriter {
     }
 
     public Problem problem(HttpStatus status, String code, String title, String detail) {
-        return new Problem("about:blank", title, status.value(), code, detail, MDC.get(RequestIdFilter.MDC_KEY));
+        return problem(status, code, title, detail, null);
+    }
+
+    public Problem problem(HttpStatus status, String code, String title, String detail, List<FieldError> errors) {
+        return new Problem("about:blank", title, status.value(), code, detail,
+                MDC.get(RequestIdFilter.MDC_KEY), errors);
     }
 
     /** Per i filtri di sicurezza, che rispondono fuori dai controller. */
