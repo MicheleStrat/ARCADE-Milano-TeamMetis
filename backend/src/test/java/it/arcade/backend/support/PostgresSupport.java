@@ -20,7 +20,6 @@ public final class PostgresSupport {
         r.add("spring.datasource.url", DB::getJdbcUrl);
         r.add("spring.datasource.username", () -> "arcade_backend");
         r.add("spring.datasource.password", () -> "test");
-        r.add("spring.datasource.hikari.maximum-pool-size", () -> "1"); // forza il riuso della connessione
         r.add("spring.flyway.url", DB::getJdbcUrl);
         r.add("spring.flyway.user", DB::getUsername);
         r.add("spring.flyway.password", DB::getPassword);

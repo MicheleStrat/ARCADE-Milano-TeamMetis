@@ -20,6 +20,7 @@ class ScopedDbTest {
     @DynamicPropertySource
     static void database(DynamicPropertyRegistry registry) {
         PostgresSupport.register(registry);
+        registry.add("spring.datasource.hikari.maximum-pool-size", () -> "1"); // forza il riuso della connessione
     }
 
     private int exhibitorId(String code) {
