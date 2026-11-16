@@ -63,6 +63,27 @@ public abstract class CommercialApiTest extends ApiTest {
         return read(postQuote(key(), quoteBody(year, exhibitorId, discount, lines)).andExpect(status().isCreated()));
     }
 
+    protected ResultActions confirmedQuoteAction(int quoteId) throws Exception {
+        mvc.perform(post("/quotes/" + quoteId + "/send").header(HttpHeaders.AUTHORIZATION, staff()).header("If-Match", 0))
+                .andExpect(status().isOk());
+        return mvc.perform(post("/quotes/" + quoteId + "/confirm").header(HttpHeaders.AUTHORIZATION, staff()).header("If-Match", 1));
+    }
+
+    /** Crea, invia e conferma un preventivo; restituisce il preventivo creato. */
+    protected JsonNode confirmedQuote(int year, int exhibitorId, double discount, List<Map<String, Object>> lines)
+            throws Exception {
+        JsonNode q = createdQuote(year, exhibitorId, discount, lines);
+        confirmedQuoteAction(q.get("quoteId").asInt()).andExpect(status().isOk());
+        return q;
+    }
+
+    protected ResultActions convert(int quoteId, String key, String signedOn) throws Exception {
+        return mvc.perform(post("/quotes/" + quoteId + "/contract")
+                .header(HttpHeaders.AUTHORIZATION, staff()).header("Idempotency-Key", key)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("signedOn", signedOn, "isRenewal", false))));
+    }
+
     protected ResultActions getQuote(int quoteId) throws Exception {
         return mvc.perform(get("/quotes/" + quoteId).header(HttpHeaders.AUTHORIZATION, staff()));
     }
