@@ -1,6 +1,6 @@
 # B3a — Percorso "contratto venduto" via API: specifica
 
-**Data:** 16 novembre 2026 · **Responsabile:** Mattia Billong · **Stato:** da approvare
+**Data:** 16 novembre 2026 · **Responsabile:** Mattia Billong · **Stato:** implementata
 
 ## 1. Obiettivo
 
@@ -84,7 +84,7 @@ Una sola transazione, con gli stessi blocchi di §5:
 
 ## 9. Idempotenza
 
-- **Tabella `core.idempotency_key`** (V6): `principal` (il `sub` del token), `operation` (`createQuote` o `convertQuoteToContract`), `key`, `request_hash`, `response_status`, `response_body` (jsonb), `created_at`; `UNIQUE (principal, operation, key)`. Solo `arcade_app` la usa; il portale non ha nessun permesso.
+- **Tabella `core.idempotency_key`** (V6): `principal` (il `sub` del token), `operation` (`createQuote` o `convertQuoteToContract`), `key`, `request_hash`, `response_status`, `response_body` (testo, per restituire la risposta identica byte per byte), `created_at`; `UNIQUE (principal, operation, key)`. Solo `arcade_app` la usa; il portale non ha nessun permesso.
 - **`request_hash`:** SHA-256 del contenuto della richiesta in forma canonica (campi ordinati) più percorso e metodo.
 - **Flusso, nella stessa transazione dell'operazione:** `INSERT … ON CONFLICT DO NOTHING`. Se la riga esiste già:
   - ancora valida (meno di 24 ore) e stesso `request_hash` → si restituisce `response_status` e `response_body` salvati, con l'intestazione `Idempotent-Replayed: true`;
