@@ -1,6 +1,15 @@
-# Backend ARCADE Milano (B2: scheletro)
+# Backend ARCADE Milano (API base + B3a)
 
-Spring Boot 3.5, Java 25, Maven (wrapper). Implementa `/health`, `/me`, `/editions` e `/portal/me` del contratto `docs/api/openapi.yaml`. Preventivi, contratti e pagamenti sono in B3.
+Spring Boot 3.5, Java 25, Maven (wrapper). Implementa le API base, il profilo minimo del portale e il percorso B3a preventivo→contratto del contratto `docs/api/openapi.yaml`:
+
+- `GET /health`, `GET /me`, `GET /editions`, `GET /editions/{id}`, `GET /pavilions`, `GET /exhibitor-categories`.
+- `GET /editions/{id}/floorplan`, `GET /editions/{id}/stands`, `GET /editions/{id}/price-list`, `PATCH /price-items/{id}`.
+- `GET /exhibitors`, `POST /exhibitors`, `GET /exhibitors/{id}`, `PUT /exhibitors/{id}`; i contatti sono visibili solo a ADMIN e COMMERCIAL.
+- `GET /portal/me`.
+- `POST /quotes`, `GET /quotes/{id}`, `POST /quotes/{id}/send`, `POST /quotes/{id}/confirm`.
+- `POST /quotes/{id}/contract`, `GET /contracts/{id}`.
+
+Il token di sviluppo `POST /dev/token` è registrato solo con il profilo `dev`.
 
 Specifica: `docs/superpowers/specs/2026-11-13-b2-scheletro-backend-design.md`.
 
@@ -47,6 +56,7 @@ cd backend
 ```
 
 Servono Docker avviato (i test creano un PostgreSQL in container). I test non toccano il database locale.
+La suite include test API per cataloghi e anagrafiche oltre ai flussi già implementati; per verificare la branch eseguire il comando sopra.
 
 ## Preventivi e contratti (B3a)
 
@@ -61,5 +71,5 @@ Limiti: il listino e le date 2026 reali non esistono nel database; la conversion
 ## Limiti noti
 
 - Il token di sviluppo usa una chiave locale: Entra ID non è configurato né provato.
-- Solo quattro endpoint; il resto del contratto non è implementato.
+- Restano fuori da questa task il report espositore (B20), gli altri operation commerciali B3b, KPI, operativi, ingestione e portale esteso.
 - Provato solo sul database locale, non sul server Azure.

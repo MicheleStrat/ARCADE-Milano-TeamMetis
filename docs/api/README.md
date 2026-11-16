@@ -1,10 +1,10 @@
 # Contratto API ARCADE Milano — v1.0.0-draft
 
-File: [openapi.yaml](openapi.yaml) · Task B4 · Responsabile: Mattia Billong · Stato: **bozza, non congelata, non implementata**
+File: [openapi.yaml](openapi.yaml) · Task B4 · Responsabile: Mattia Billong · Stato: **bozza, non congelata, implementata in parte**
 
-Il file descrive 58 operazioni su 53 percorsi e 91 schemi. È un **contratto**: nessun endpoint esiste ancora nel backend. Serve a far lavorare in parallelo backend, Angular e BAD, e va congelato dopo la revisione del team e del BAD.
+Il file descrive 58 operazioni su 53 percorsi e 91 schemi. È il **contratto** per backend, Angular e BAD, ancora da congelare dopo la revisione del team e del BAD. Il backend implementa le API base, il portale essenziale e il percorso B3a preventivo→contratto elencati in [backend/README.md](../../backend/README.md); il report espositore, B3b, KPI, operatività e ingestione restano nelle rispettive task.
 
-Controllo eseguito: `@redocly/cli` (versione 1) segnala il file **valido**; restano avvisi di stile (descrizioni dei tag, risposte 4xx non ripetute su ogni lettura, licenza). Non è stato provato con un backend né importato in Power Platform.
+Controllo documentato: `@redocly/cli` (versione 1) segnalava il file **valido**; restano avvisi di stile (descrizioni dei tag, risposte 4xx non ripetute su ogni lettura, licenza). Il confronto automatico con lo schema generato dal backend e l'importazione in Power Platform non sono stati eseguiti.
 
 ## Come verificarlo e visualizzarlo
 
@@ -61,6 +61,8 @@ Quando esisterà il backend con Springdoc, il file generato va confrontato con q
 | `PRICE_LIST_CONDITIONS_MISSING` | 422 | Il listino non indica acconto o giorni del saldo |
 | `INVALID_STATE_TRANSITION` | 409 | Passaggio di stato non permesso |
 | `STAND_NOT_SELLABLE` | 422 | Stand libero o non commercializzabile |
+| `EXHIBITOR_ALREADY_EXISTS` | 409 | Partita IVA già associata a un espositore |
+| `PRICE_LIST_IN_USE` | 409 | Modifica listino bloccata da contratti firmati |
 | `PREEMPTION_EXPIRED` | 422 | Prelazione oltre la scadenza |
 | `PAYLOAD_TOO_LARGE` | 413 | Troppi elementi o file troppo grande |
 | `RATE_LIMITED` | 429 | Troppe richieste (`Retry-After`) |
@@ -123,7 +125,7 @@ Se si userà un connettore personalizzato (decisione B1 ancora aperta, vedi sott
 
 ## Cosa NON è stato verificato
 
-- Nessuna implementazione, quindi nessun test di conformità del backend al contratto.
+- I test automatici del backend coprono le API implementate; non è stato eseguito un test di conformità completo dei 58 operation del contratto.
 - Nessuna importazione in Power Apps/Power Automate.
 - La coerenza con la V5 di Alessandro (procedure di caricamento) è assunta dai nomi, non provata.
 - Le soglie (1000 letture, 500 visite, 200 elementi per pagina, 24 ore di idempotenza) sono scelte tecniche da validare con i test di prestazioni.

@@ -3,8 +3,9 @@ info:
   title: ARCADE Milano API
   version: 1.0.0-draft
   description: |
-    Contratto API condiviso tra BID e BAD. **BOZZA: non ancora congelata e non ancora implementata.**
-    Nessun endpoint di questo file esiste oggi nel backend.
+    Contratto API condiviso tra BID e BAD. **BOZZA: non ancora congelata e implementata in parte.**
+    Il backend copre le API base, il portale essenziale e il flusso B3a preventivo-contratto;
+    gli altri operation restano assegnati alle task specifiche indicate in `docs/06-assegnazione-task-bid.md`.
 
     Convenzioni principali (dettagli in `docs/api/README.md`):
     - Base `/api/v1`. Date `YYYY-MM-DD`; istanti in UTC (`...Z`). Importi in euro, IVA esclusa, due decimali.
@@ -1442,13 +1443,13 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
     Conflict:
-      description: Conflitto di stato o di concorrenza (es. `STAND_ALREADY_SOLD`, `OPTIMISTIC_LOCK_CONFLICT`, `IMPORT_ALREADY_DONE`)
+      description: Conflitto di stato o di concorrenza (`STAND_ALREADY_SOLD`, `OPTIMISTIC_LOCK_CONFLICT`, `IMPORT_ALREADY_DONE`, `DUPLICATE_REQUEST`, `INVALID_STATE_TRANSITION`, `EXHIBITOR_ALREADY_EXISTS`, `PRICE_LIST_IN_USE`)
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
     Unprocessable:
-      description: Dati validi come formato ma non ammessi dalle regole (`VALIDATION_ERROR`, `PAYMENT_EXCEEDS_CONTRACT`, `PREEMPTION_EXPIRED`, ...)
+      description: Dati validi come formato ma non ammessi dalle regole (`VALIDATION_ERROR`, `PAYMENT_EXCEEDS_CONTRACT`, `PREEMPTION_EXPIRED`, `EDITION_DATES_MISSING`, `PRICE_LIST_CONDITIONS_MISSING`, `STAND_NOT_SELLABLE`, ...)
       content:
         application/problem+json:
           schema:
@@ -1800,6 +1801,7 @@ components:
             $ref: '#/components/schemas/PriceItem'
     PriceItemUpdate:
       type: object
+      minProperties: 1
       properties:
         unitPrice:
           $ref: '#/components/schemas/Money'
@@ -1810,6 +1812,7 @@ components:
         maxQuantity:
           type: integer
           minimum: 1
+          maximum: 32767
 
     # ---------- Espositori ----------
     ContactRef:
@@ -1860,9 +1863,11 @@ components:
           type: string
         contactName:
           type: string
+          description: Da fornire insieme a contactEmail.
         contactEmail:
           type: string
           format: email
+          description: Da fornire insieme a contactName.
     ExhibitorPage:
       allOf:
         - $ref: '#/components/schemas/PageInfo'
