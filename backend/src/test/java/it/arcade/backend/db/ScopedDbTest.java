@@ -63,4 +63,20 @@ class ScopedDbTest {
         // Spring avvolge l'errore SQL: il testo "permission denied" sta nella causa, non nel messaggio esterno.
         assertThatThrownBy(() -> countExhibitors(jdbc)).rootCause().hasMessageContaining("permission denied");
     }
+
+    @Test
+    void write_usa_il_ruolo_staff_e_annulla_tutto_se_c_e_un_errore() {
+        String ruolo = db.write(j -> j.sql("SELECT current_user").query(String.class).single());
+        assertThat(ruolo).isEqualTo("arcade_app");
+
+        assertThatThrownBy(() -> db.write(j -> {
+            j.sql("INSERT INTO core.idempotency_key (principal, operation, idem_key, request_hash) "
+                    + "VALUES ('t','t','chiave-rollback-1','h')").update();
+            throw new IllegalStateException("errore voluto");
+        })).isInstanceOf(IllegalStateException.class);
+
+        Integer righe = PostgresSupport.owner().queryForObject(
+                "SELECT count(*) FROM core.idempotency_key WHERE idem_key = 'chiave-rollback-1'", Integer.class);
+        assertThat(righe).isZero();
+    }
 }

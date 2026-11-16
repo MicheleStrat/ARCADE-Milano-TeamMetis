@@ -48,6 +48,6 @@ public class DevTokenController {
     }
 
     private static ApiException invalid(String detail) {
-        return new ApiException(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Richiesta non valida", detail);
+        return new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Richiesta non valida", detail);
     }
 }

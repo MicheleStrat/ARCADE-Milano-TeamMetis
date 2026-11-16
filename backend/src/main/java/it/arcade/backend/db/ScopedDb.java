@@ -16,11 +16,21 @@ public class ScopedDb {
 
     private final JdbcClient jdbc;
     private final TransactionTemplate tx;
+    private final TransactionTemplate writeTx;
 
     public ScopedDb(JdbcClient jdbc, PlatformTransactionManager transactionManager) {
         this.jdbc = jdbc;
         this.tx = new TransactionTemplate(transactionManager);
         this.tx.setReadOnly(true);
+        this.writeTx = new TransactionTemplate(transactionManager);
+    }
+
+    /** Transazione in lettura e scrittura con il ruolo staff. Qualsiasi eccezione annulla tutto. */
+    public <T> T write(Function<JdbcClient, T> work) {
+        return writeTx.execute(status -> {
+            jdbc.sql("SET LOCAL ROLE " + DbRole.STAFF.sqlName()).update();
+            return work.apply(jdbc);
+        });
     }
 
     public <T> T read(DbRole role, Integer exhibitorId, Function<JdbcClient, T> work) {
