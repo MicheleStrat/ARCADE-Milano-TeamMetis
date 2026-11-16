@@ -1,7 +1,7 @@
 # Processo commerciale ARCADE: preventivo → contratto → acconto → saldo → prelazione
 
 > BAD-02-01 (#53). Stati e vincoli presi da `database/migrations/V1__core_schema.sql` (ramo `BID`), così Power Apps, flussi e DB usano gli stessi nomi.
-> Aggiornato al 16/11/2026. Regole e responsabili: vedi la sezione 4 (BAD-02-02, #54).
+> Aggiornato al 16/11/2026. Regole e responsabili: vedi la sezione 4 (BAD-02-02, #54, decisione B-51).
 
 ## 1. Il processo in un colpo d'occhio
 
@@ -86,7 +86,7 @@ stateDiagram-v2
 | 1 | Nuovo preventivo | Commerciale (app back-office) | `quote` DRAFT + `quote_line`, numero `PV<anno>-<nnnn>` (B-37) | Resta AVAILABLE o diventa RESERVED con `reserved_until` | — |
 | 2 | Invio | Commerciale | `quote.status` = SENT | Invariato | — |
 | 3 | Accettazione / rifiuto / scadenza | Commerciale, su risposta dell'espositore | CONFIRMED / REJECTED / EXPIRED | Se REJECTED o EXPIRED torna AVAILABLE | — |
-| 4 | Conversione | Commerciale | `contract` DRAFT (numero `C<anno>-<nnnn>`, `quote_id`), `contract_stand`, `contract_line`, `payment` DEPOSIT e BALANCE; `quote` = CONVERTED | SOLD | Acconto e saldo creati con scadenza e importo |
+| 4 | Conversione | Commerciale: **un solo `Patch`** del preventivo a CONVERTED (B-51) | Il **trigger** su `core.quote` crea nella stessa transazione `contract` DRAFT (numero `C<anno>-<nnnn>` generato dal DB, `quote_id`), `contract_stand`, `contract_line`, `payment` DEPOSIT e BALANCE. Se fallisce non resta nulla e l'app riceve l'errore; poi l'app legge il contratto per `quote_id` | SOLD | Acconto 30% e saldo 70% (provvisorio, A-18) |
 | 5 | Firma | Commerciale | `contract.status` = SIGNED + `signed_on` | SOLD | Invariati. Notifica all'amministrazione (flusso BAD-05-06) |
 | 6 | Promemoria | Flusso BAD-05-03, ogni giorno alle 7:00 | Nessuna scrittura (legge `flow.v_payment_due`) | — | Email al commerciale per acconti e saldi in scadenza o scaduti |
 | 7 | Incasso | Amministrazione | `payment.paid_on` + `paid_amount` | — | Pagato |
@@ -114,11 +114,11 @@ stateDiagram-v2
 ### NON garantite dal database (scoperte)
 | Regola | Rischio | Proposta |
 |---|---|---|
-| **Conversione tutta o niente** (contratto, stand, righe, pagamenti, preventivo CONVERTED) | Più `Patch` non sono una transazione: un errore a metà lascia un contratto incompleto | API del BID `POST /quotes/{id}/contract` o funzione SQL in un'unica transazione. Fino ad allora: `Patch` in sequenza con controllo dopo ogni passo e pulizia se fallisce (A-08) |
+| **Conversione tutta o niente** (contratto, stand, righe, pagamenti, preventivo CONVERTED) | Più `Patch` non sono una transazione: un errore a metà lascia un contratto incompleto | **Deciso (B-51, 16/11)**: trigger nel DB su `core.quote` (Fabrizio). L'app fa un solo `Patch` a CONVERTED; niente `Patch` in sequenza, niente attesa dell'API del BID |
 | Ordine degli stati (es. CONVERTED solo da CONFIRMED, niente ritorno a DRAFT dopo SIGNED) | Nessun trigger nel DB | Power Apps: pulsanti attivi solo nello stato giusto |
 | Stand SOLD quando c'è un `contract_stand` attivo | Disallineamento tra `stand_edition` e `contract_stand` | Nella conversione (API/funzione). In Power Apps: aggiornare entrambi nello stesso passaggio |
 | Acconto + saldo = netto del contratto | I pagamenti possono non tornare con il contratto | Calcolo in Power Apps alla conversione (o nella funzione) |
 | Pagato ≤ dovuto | Nessun `CHECK` sul totale (l'API prevede `PAYMENT_EXCEEDS_CONTRACT`) | Validazione in Power Apps sulla maschera incassi |
 | Preventivo solo su stand AVAILABLE (o RESERVED per lo stesso espositore) | Si può preventivare uno stand venduto, l'errore arriva solo alla conversione | Filtro in Power Apps sulla scelta stand |
 
-Le regole "scoperte" vanno confermate con il BID (decisione da registrare in `docs/brain/contesto-BAD.md`, A-08).
+Decisione registrata in `docs/brain/contesto-BAD.md` come **B-51** (chiude A-08): conversione nel DB con trigger, le altre regole scoperte a Power Apps.
