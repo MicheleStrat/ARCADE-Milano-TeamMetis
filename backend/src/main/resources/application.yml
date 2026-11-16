@@ -24,6 +24,10 @@ arcade:
   jwt:
     secret: ${JWT_DEV_SECRET:}
     ttl-minutes: 60
+  quote:
+    reservation-days: 14          # ASSUNZIONE da confermare coi product owner
+  contract:
+    deposit-due-days: 15          # ASSUNZIONE da confermare (domanda D34)
 
 logging:
   pattern:

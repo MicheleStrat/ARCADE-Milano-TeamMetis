@@ -5,6 +5,7 @@ import it.arcade.backend.security.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -49,6 +50,10 @@ public class SecurityConfig {
                         .requestMatchers("/me").authenticated()
                         .requestMatchers("/editions").hasAnyRole("ADMIN", "COMMERCIAL", "OPS", "EXHIBITOR")
                         .requestMatchers("/portal/me").hasRole("EXHIBITOR")
+                        .requestMatchers(HttpMethod.POST, "/quotes", "/quotes/*/send", "/quotes/*/confirm",
+                                "/quotes/*/contract").hasAnyRole("ADMIN", "COMMERCIAL")
+                        .requestMatchers(HttpMethod.GET, "/quotes/*").hasAnyRole("ADMIN", "COMMERCIAL")
+                        .requestMatchers(HttpMethod.GET, "/contracts/*").hasAnyRole("ADMIN", "COMMERCIAL", "OPS")
                         .anyRequest().denyAll())
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(unauthenticated)

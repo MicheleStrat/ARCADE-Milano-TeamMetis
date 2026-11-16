@@ -36,3 +36,23 @@ Registro delle decisioni che toccano sia il BID sia il BAD. Ogni voce riporta da
 - Verificare che il server Azure abbia gli stessi permessi del database locale.
 - Il connettore PostgreSQL di Power Apps/Power BI richiede una licenza premium e, se il database non è pubblico, un gateway. Non sono stati verificati.
 - L'importazione del contratto OpenAPI in Power Platform non è stata provata.
+
+## B3a — Preventivi e contratti via API
+
+**Data:** 16 novembre 2026 · **Responsabile:** Mattia Billong (team leader BID) · **Stato:** implementata nel backend; **da comunicare** al BAD e a chi sviluppa Angular (Michele)
+
+**Cosa c'è.** `POST /quotes`, `GET /quotes/{id}`, `POST /quotes/{id}/send`, `/confirm`, `POST /quotes/{id}/contract`, `GET /contracts/{id}`. I prezzi li calcola il server dal listino; gli stand si riservano alla creazione del preventivo e passano a venduti alla conversione. `Idempotency-Key` (24 ore) sulle creazioni e `If-Match` (rowVersion) su invio e conferma.
+
+**Codici di errore nuovi** (modifica compatibile del contratto): `EDITION_DATES_MISSING` (422), `PRICE_LIST_CONDITIONS_MISSING` (422), `INVALID_STATE_TRANSITION` (409), `STAND_NOT_SELLABLE` (422). I codici di formato usano `VALIDATION_ERROR` come da contratto.
+
+**Assunzioni da confermare coi product owner**
+
+| Assunzione | Valore | Dove si cambia |
+|---|---|---|
+| Durata della riserva degli stand | 14 giorni | `arcade.quote.reservation-days` |
+| Scadenza dell'acconto | 15 giorni dopo la firma (domanda D34 senza risposta) | `arcade.contract.deposit-due-days` |
+| Scadenza del saldo | primo giorno dell'edizione meno `balance_days_before` del listino | dati |
+| Edizione per i preventivi | solo `SALES_OPEN`, con listino `PUBLISHED` | — |
+| Un contratto per espositore ed edizione | non imposto (decisione D-07 non confermata) | — |
+
+**Non verificato.** L'edizione 2026 non ha giorni di apertura nel database: finché non ci sono, la conversione risponde `422 EDITION_DATES_MISSING`. Il listino reale lo carica B7. Tutto è provato solo con dati di test, non sul server Azure.

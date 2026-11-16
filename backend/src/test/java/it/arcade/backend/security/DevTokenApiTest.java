@@ -43,7 +43,7 @@ class DevTokenApiTest extends ApiTest {
         mvc.perform(post("/dev/token").contentType(MediaType.APPLICATION_JSON)
                         .content(richiesta("mattia", "SUPERUSER")))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
     @Test
@@ -57,6 +57,6 @@ class DevTokenApiTest extends ApiTest {
     void rifiuta_un_corpo_malformato() throws Exception {
         mvc.perform(post("/dev/token").contentType(MediaType.APPLICATION_JSON).content("{non json"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 }
