@@ -12,11 +12,12 @@ Lo **stato** (aperta/chiusa) è quello delle issue al 16/11. Le **note** sono mi
 |---|---|---|---|
 | Analisi e profilazione dei dati | BID-01 | Chiusa | Michele |
 | Modello dati condiviso | BID-02 | Chiusa | Michele |
-| Pipeline di acquisizione dati | BID-03 | Chiusa (PR #96 unita) | Alessandro |
-| API REST Spring Boot | BID-04 | **Aperta** | Mattia (B2, B3a nel repository); Alessandro dichiarato, da verificare |
-| Dashboard operativa per lo staff | BID-05 | **Aperta** | Michele (proposta del 4/11) |
-| Portale web per gli espositori | BID-06 | **Aperta** | Andrea (proposta del 4/11); `#39` con Mattia |
-| KPI e regole di calcolo | SHARED-01 | Chiusa | Michele |
+| Pipeline di acquisizione dati | BID-03 | Chiusa su GitHub (PR #96 unita); Alessandro la rimette in corso | Alessandro |
+| API REST Spring Boot | BID-04 | **Aperta** (Alessandro la mette in corso) | Alessandro; nel repository c'è già il backend di B2 e B3a (Mattia) |
+| Dashboard operativa per lo staff | BID-05 | **Aperta** | Mattia |
+| Portale web per gli espositori | BID-06 | **Aperta** | Mattia |
+
+Le assegnazioni sono quelle delle issue su GitHub al 16/11. **Andrea non ha issue BID assegnate.** Le issue SHARED-01 non sono in questo documento.
 
 ## Date
 
@@ -65,7 +66,7 @@ Nota: la V6 di B3a (16/11) ha aggiunto `stand_edition.reserved_by_quote_id` e la
 
 ## BID-03 — Sviluppo delle pipeline di acquisizione dati (`#16`, chiusa)
 
-Responsabile: Alessandro. Pipeline unita su `BID` con la PR #96; V5 e correzioni con la PR #89.
+Responsabile: Alessandro. Pipeline unita su `BID` con la PR #96; V5 e correzioni con la PR #89. Le issue sono chiuse su GitHub, ma Alessandro la rimette in corso.
 
 | Issue | Task | Stato |
 |---|---|---|
@@ -77,7 +78,7 @@ Responsabile: Alessandro. Pipeline unita su `BID` con la PR #96; V5 e correzioni
 
 ## BID-04 — API REST con Java e Spring Boot (`#22`, aperta)
 
-Nel repository l'unico codice Spring Boot è quello di Mattia (B2 e B3a, PR #95 e #97). Mattia dichiara che BID-04 è stata fatta da Alessandro: **non verificato**, controllare se esiste un backend suo non ancora pushato, per non avere due versioni.
+Responsabile: Alessandro. **Nel repository c'è già un backend Spring Boot**, scritto da Mattia (B2 e B3a, PR #95 e #97, cartella `backend/`, con 89 test): Alessandro deve partire da quello e non riscriverlo. Da concordare tra i due chi fa gli endpoint che mancano (elenco nella tabella).
 
 | Issue | Task | Stato | Note |
 |---|---|---|---|
@@ -89,7 +90,7 @@ Nel repository l'unico codice Spring Boot è quello di Mattia (B2 e B3a, PR #95 
 
 ## BID-05 — Dashboard operativa per lo staff (`#28`, aperta)
 
-Responsabile proposto: Michele. Non iniziata (nessun codice Angular nel repository).
+Responsabile: Mattia. Non iniziata (nessun codice Angular nel repository). Dipende dagli endpoint `/ops/*` e `/kpi/*` di BID-04, che oggi non esistono.
 
 | Issue | Task | Stato |
 |---|---|---|
@@ -101,7 +102,7 @@ Responsabile proposto: Michele. Non iniziata (nessun codice Angular nel reposito
 
 ## BID-06 — Portale web per gli espositori (`#34`, aperta)
 
-Responsabile proposto: Andrea. Non iniziata.
+Responsabile: Mattia. Non iniziata. Dipende da `/portal/me/**` di BID-04: oggi c'è solo `/portal/me`.
 
 | Issue | Task | Stato | Note |
 |---|---|---|---|
@@ -109,19 +110,7 @@ Responsabile proposto: Andrea. Non iniziata.
 | `#36` | BID-06-02 Visualizzare le visite ricevute dai relativi stand. | Aperta | |
 | `#37` | BID-06-03 Predisporre il riepilogo delle prestazioni e il confronto tra edizioni. | Aperta | |
 | `#38` | BID-06-04 Recuperare i dati dalle API e dal modello condiviso. | Aperta | Endpoint `/portal/me/**` del contratto: solo `/portal/me` è implementato. |
-| `#39` | BID-06-05 Separare rigorosamente i dati appartenenti a espositori diversi. | Aperta | In corso (Mattia). Isolamento a livello database e `/portal/me` provato dai test di B2; i test di sicurezza completi via backend (URL e parametri) sono da fare. |
-
-## SHARED-01 — Definizione dei KPI e delle regole di calcolo (`#40`, chiusa)
-
-Responsabile: Michele (con Fabrizio, BAD).
-
-| Issue | Task | Stato |
-|---|---|---|
-| `#41` | SHARED-01-01 Definire visitatori totali e picco di presenza. | Chiusa |
-| `#42` | SHARED-01-02 Concordare il significato di saturazione degli spazi e ricavo per metro quadrato | Chiusa |
-| `#43` | SHARED-01-03 Definire il costo per contatto e cosa viene conteggiato come contatto. | Chiusa |
-| `#44` | SHARED-01-04 Stabilire le regole di conteggio delle visite, dei duplicati e degli intervalli temporali. | Chiusa |
-| `#45` | SHARED-01-05 Documentare le assunzioni quando i dati non consentono un calcolo preciso. | Chiusa |
+| `#39` | BID-06-05 Separare rigorosamente i dati appartenenti a espositori diversi. | Aperta | Isolamento a livello database e `/portal/me` provato dai test di B2; i test di sicurezza completi via backend (URL e parametri) sono da fare. |
 
 ---
 
@@ -206,7 +195,7 @@ Il documento del 4 novembre usava codici `B…` che compaiono ancora in commit e
 
 1. **Conversione preventivo → contratto: due implementazioni.** Il BAD ha realizzato la conversione con un trigger nel database (B-51, ramo `BAD`, 16/11) e usa l'accesso diretto (`arcade_powerapp`); B3a la fa via API (`#24`). La decisione B1 prevede le scritture solo via API. Va deciso quale resta e come si evita il doppione (regole, numerazione dei contratti).
 2. **Congelamento dello schema:** vedi la nota sotto BID-02 (V6 di B3a).
-3. **BID-04:** verificare con Alessandro se esiste un backend suo.
+3. **BID-04 e il backend già esistente:** `BID-04` è assegnata ad Alessandro, ma il backend (B2 e B3a) è già nel repository, scritto da Mattia. Concordare che Alessandro parta da quello e chi fa gli endpoint mancanti (B3b, `/ops/*`, `/kpi/*`, `/portal/me/**`, ingest delle scansioni).
 4. **Date 2026 e listino reale:** senza giorni di apertura nell'edizione 2026 la conversione risponde `422 EDITION_DATES_MISSING`; chiedere ad Alessandro se il caricamento (BID-03) le ha già inserite.
 5. **App di scansione agli stand:** il BAD ha nel PDF ufficiale la sua assegnazione, il BID la mette nella PWA Angular.
 6. **Risposte del cliente:** D1, D2, D3, D4, D6 e D34 incidono sui caricamenti e sull'acconto di B3a.
