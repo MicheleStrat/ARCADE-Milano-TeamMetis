@@ -110,6 +110,8 @@ public class QuoteService {
         if (req.discountPct() != null
                 && (req.discountPct().signum() < 0 || req.discountPct().compareTo(BigDecimal.ONE) > 0)) {
             v.add("discountPct", "deve essere tra 0 e 1");
+        } else if (req.discountPct() != null && req.discountPct().stripTrailingZeros().scale() > 4) {
+            v.add("discountPct", "al massimo quattro decimali");
         }
         if (req.validUntil() != null && req.validUntil().isBefore(LocalDate.now())) {
             v.add("validUntil", "non puo' essere nel passato");

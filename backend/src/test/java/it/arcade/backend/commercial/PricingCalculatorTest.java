@@ -96,6 +96,24 @@ class PricingCalculatorTest {
     }
 
     @Test
+    void uno_stand_su_una_voce_non_spazio_e_rifiutato() {
+        assertThatThrownBy(() -> PricingCalculator.calculate(
+                List.of(new QuoteLineInput(3, 10, d("1"), null)), ITEMS, STANDS, null))
+                .isInstanceOf(ApiException.class)
+                .satisfies(e -> assertThat(((ApiException) e).errors().get(0).field()).isEqualTo("lines[0].standEditionId"));
+    }
+
+    @Test
+    void quantita_con_troppi_decimali_troppo_piccola_o_enorme_e_rifiutata() {
+        for (String q : List.of("1.005", "0.001", "1e15")) {
+            assertThatThrownBy(() -> PricingCalculator.calculate(List.of(extra(q)), ITEMS, STANDS, null))
+                    .as("quantita " + q)
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(e -> assertThat(((ApiException) e).errors().get(0).field()).isEqualTo("lines[0].quantity"));
+        }
+    }
+
+    @Test
     void maggiorazione_mancante_nel_listino_e_un_errore() {
         Map<Integer, PriceItem> senza = Map.of(1, SP1);
         assertThatThrownBy(() -> PricingCalculator.calculate(List.of(space(10)), senza, STANDS, null))

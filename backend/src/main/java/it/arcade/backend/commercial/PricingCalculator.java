@@ -27,6 +27,9 @@ public final class PricingCalculator {
 
     public record PricedQuote(List<PricedLine> lines, BigDecimal listAmount, BigDecimal netAmount) {}
 
+    private static final BigDecimal MAX_QUANTITY = new BigDecimal("9999999999.99");   // numeric(12,2)
+    private static final BigDecimal MAX_AMOUNT = new BigDecimal("9999999999.99");
+
     private PricingCalculator() {}
 
     private static BigDecimal money(BigDecimal v) {
@@ -108,17 +111,35 @@ public final class PricingCalculator {
 
     private static void addOther(QuoteLineInput in, PriceItem item, String f, List<PricedLine> lines,
                                  ValidationErrors errors) {
+        if (in.standEditionId() != null) {
+            errors.add(f + ".standEditionId", "ammesso solo per le voci di tipo SPACE");
+            return;
+        }
         BigDecimal q = in.quantity();
         if (q == null || q.signum() <= 0) {
             errors.add(f + ".quantity", "deve essere maggiore di zero");
+            return;
+        }
+        // La colonna e' numeric(12,2): niente decimali oltre il secondo, niente valori fuori scala.
+        if (q.stripTrailingZeros().scale() > 2) {
+            errors.add(f + ".quantity", "al massimo due decimali");
+            return;
+        }
+        if (q.compareTo(MAX_QUANTITY) > 0) {
+            errors.add(f + ".quantity", "valore troppo grande");
             return;
         }
         if (item.maxQuantity() != null && q.compareTo(BigDecimal.valueOf(item.maxQuantity())) > 0) {
             errors.add(f + ".quantity", "oltre la quantita' massima (" + item.maxQuantity() + ")");
             return;
         }
+        BigDecimal amount = money(q.multiply(item.unitPrice()));
+        if (amount.compareTo(MAX_AMOUNT) > 0) {
+            errors.add(f + ".quantity", "importo troppo grande");
+            return;
+        }
         String description = in.description() != null ? in.description() : item.name();
         lines.add(new PricedLine(item.itemType(), item.priceItemId(), null, description, q, item.unitPrice(),
-                money(q.multiply(item.unitPrice()))));
+                amount));
     }
 }

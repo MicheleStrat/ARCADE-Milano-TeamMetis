@@ -103,6 +103,37 @@ class CreateQuoteApiTest extends CommercialApiTest {
     }
 
     @Test
+    void uno_sconto_con_piu_di_quattro_decimali_e_rifiutato_con_422() throws Exception {
+        postQuote(key(), quoteBody(YEAR, espositore(), 0.12345, List.of(extraLine(YEAR, 1))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("discountPct"));
+    }
+
+    @Test
+    void una_riga_extra_con_uno_stand_non_lo_riserva() throws Exception {
+        int stand = Fixtures.newStand(YEAR, "P1", "10.00", "LINEA");
+        Map<String, Object> extraConStand = Map.of("priceItemId", Fixtures.priceItem(YEAR, "EX-EL6"),
+                "standEditionId", stand, "quantity", 1);
+
+        postQuote(key(), quoteBody(YEAR, espositore(), 0, List.of(extraConStand)))
+                .andExpect(status().isUnprocessableEntity());
+        assertThat(Fixtures.owner().queryForObject(
+                "SELECT commercial_status FROM core.stand_edition WHERE stand_edition_id = ?", String.class, stand))
+                .isEqualTo("AVAILABLE");
+    }
+
+    @Test
+    void uno_stand_riservato_senza_scadenza_non_si_puo_riprendere() throws Exception {
+        int stand = Fixtures.newStand(YEAR, "P1", "10.00", "LINEA");
+        Fixtures.owner().update("UPDATE core.stand_edition SET commercial_status = 'RESERVED', reserved_until = NULL "
+                + "WHERE stand_edition_id = ?", stand);
+
+        postQuote(key(), quoteBody(YEAR, espositore(), 0, List.of(spaceLine(YEAR, stand))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("STAND_ALREADY_RESERVED"));
+    }
+
+    @Test
     void senza_idempotency_key_risponde_400() throws Exception {
         mvc.perform(post("/quotes").header(HttpHeaders.AUTHORIZATION, staff())
                         .contentType(MediaType.APPLICATION_JSON)

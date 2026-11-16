@@ -26,7 +26,8 @@ public class StandReservation {
         }
         return jdbc.sql("""
                         SELECT stand_edition_id, commercial_status,
-                               (reserved_until IS NOT NULL AND reserved_until > now()) AS reservation_active,
+                               (commercial_status = 'RESERVED'
+                                AND (reserved_until IS NULL OR reserved_until > now())) AS reservation_active,
                                reserved_by_quote_id
                           FROM core.stand_edition WHERE stand_edition_id IN (:ids)
                          ORDER BY stand_edition_id FOR UPDATE""")
