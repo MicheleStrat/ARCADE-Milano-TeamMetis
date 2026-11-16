@@ -5,7 +5,7 @@
 >
 > **Versione per il repo**: il repository è pubblico, quindi qui mancano indirizzo del server, nome dell'admin, email personali e dettagli del firewall. Quelli restano solo nel contesto privato del BAD.
 
-Ultimo aggiornamento: 13 novembre 2026 (ruoli B-36, numerazione B-37, V8 eseguita B-38, Power BI in Import B-39, connettore PostgreSQL in Power Automate B-50)
+Ultimo aggiornamento: 16 novembre 2026 (ruoli B-36, numerazione B-37, V8 eseguita B-38, Power BI in Import B-39, connettore PostgreSQL in Power Automate B-50)
 Regola: qui vanno solo decisioni prese e progressi verificati del team BAD. Le cose del BID stanno in [[contesto-BID]].
 
 ## Chi siamo e cosa facciamo
@@ -148,6 +148,8 @@ Risorse: 71 € di crediti Azure. Il server è nella quota gratuita Azure for St
 | 11/11 | **V8 eseguita sul server Azure** (B-38): `BEGIN … COMMIT` senza errori. Primo preventivo di prova creato da Power Apps su `core.quote` con `quote_id: 0` → l'app riceve `quote_id` 1. Scoperto che vanno passate anche le colonne NOT NULL con default (`created_at`, poi `discount_pct`): preparato `colonne-obbligatorie-power-apps.md`. Da cancellare: riga di prova (`DELETE FROM core.quote WHERE quote_number LIKE 'TEST-%'`) e schema `prova` | **Riuscito** |
 | 11/11 | Ruoli nelle app (B-36): creato `DIRECTION`, assegnati ADMIN + DIRECTION a Fabrizio e COMMERCIAL a un secondo utente del team; controllo con la query su `core.user_role` riuscito | Fatto |
 | 13/11 | Prova del connettore PostgreSQL in Power Automate (BAD-05-01, B-50): flusso "BAD-05-01 Test connettore PostgreSQL" nella solution Progetto Metis, lettura di `core.payment` riuscita con filtri su testo e numeri; i filtri sulle date non sono supportati. Eliminati dalla solution 6 riferimenti di connessione non validi lasciati dai primi tentativi di connessione falliti, resta solo quello usato dal flusso | Riuscito |
+| 15/11 | Notifica firma contratto (BAD-05-06, #77): flusso "BAD-05-06 Notifica firma contratto" (trigger Power Apps V2, input `contract_id`), email all'amministrazione e risposta ok/errore all'app, testato sul contratto C2025-0089. Variabili d'ambiente `metis_EmailCommerciale` e `metis_EmailAmministrazione` (#73) | Riuscito (manca il pulsante Firma, BAD-03-08) |
+| 16/11 | Promemoria acconti e saldi (BAD-05-03, #74): flusso pianificato ogni giorno alle 7:00 (ora di Roma) su `flow.v_payment_due` del BID (B-50); email riepilogativa con tabella al commerciale, inviata solo se ci sono righe. Variabile `metis_GiorniPreavvisoPagamenti` con valore corrente **provvisorio 7** e predefinito vuoto (Power Automate non salva un flusso con una variabile senza valore). Le viste `flow.*` non compaiono nel menu del connettore: il nome si scrive a mano | Riuscito |
 
 ## Note sui dati commerciali (verificate il 26/10 e l'8/11, non sono decisioni)
 - Pagamenti: nel file ci sono solo date, nessun importo. Acconto 30% e saldo 70% restano assunzioni da confermare col cliente.
@@ -160,7 +162,7 @@ Risorse: 71 € di crediti Azure. Il server è nella quota gratuita Azure for St
 - Nello schema `quote_number` e `contract_number` sono testi obbligatori e UNIQUE, senza valore di default: il numero lo deve generare chi scrive (B-37).
 
 ## Prossimi passi BAD
-- **Chiedere al BID la vista per i flussi** (B-50): colonne già calcolate per scadenza e pagato/non pagato su `core.payment` (e sulle prelazioni), così BAD-05-03 e BAD-05-04 filtrano senza usare date. Poi BAD-05-02 (variabili d'ambiente per destinatari e soglie).
+- **Valori dal cliente** (A-18): giorni di preavviso per pagamenti (oggi 7 provvisorio) e per prelazioni, poi aggiornare il valore corrente delle variabili d'ambiente. BAD-05-04 (prelazioni) aspetta anche che il BID generi le prelazioni 2026 in `flow.v_preemption_due`.
 - **Avvisare il BID della V8 eseguita** (B-38): cosa cambia (niente per loro), file `V8__power_apps_identity.sql` da portare nel repo con le V6/V7. Cancellare la riga `TEST-%` in `core.quote` e lo schema `prova`.
 - **Confermare A-08 per il SAL 2** (conversione con `Patch` in sequenza, API del BID dopo) e chiedere al BID dove e quando pubblicano il backend con l'endpoint di conversione.
 - **Costruire l'app back-office**: solution e publisher (BAD-01-05), connessione con `arcade_backend`, colori in `App.Formulas` (B-24), riconoscimento utente e ruoli (B-36), poi le schermate del commerciale nell'ordine dei mockup.
