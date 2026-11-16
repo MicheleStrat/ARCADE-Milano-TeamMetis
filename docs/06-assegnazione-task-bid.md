@@ -16,6 +16,7 @@ Lo **stato** (aperta/chiusa) è quello delle issue al 16/11. Le **note** sono mi
 | API REST Spring Boot | BID-04 | **Aperta** (Alessandro la mette in corso) | Alessandro; nel repository c'è già il backend di B2 e B3a (Mattia) |
 | Dashboard operativa per lo staff | BID-05 | **Aperta** | Mattia |
 | Portale web per gli espositori | BID-06 | **Aperta** | Mattia |
+| KPI e regole di calcolo | SHARED-01 | Chiusa | Assegnata a tutti su GitHub |
 
 Le assegnazioni sono quelle delle issue su GitHub al 16/11. **Andrea non ha issue BID assegnate.** Le issue SHARED-01 non sono in questo documento.
 
@@ -111,6 +112,18 @@ Responsabile: Mattia. Non iniziata. Dipende da `/portal/me/**` di BID-04: oggi c
 | `#37` | BID-06-03 Predisporre il riepilogo delle prestazioni e il confronto tra edizioni. | Aperta | |
 | `#38` | BID-06-04 Recuperare i dati dalle API e dal modello condiviso. | Aperta | Endpoint `/portal/me/**` del contratto: solo `/portal/me` è implementato. |
 | `#39` | BID-06-05 Separare rigorosamente i dati appartenenti a espositori diversi. | Aperta | Isolamento a livello database e `/portal/me` provato dai test di B2; i test di sicurezza completi via backend (URL e parametri) sono da fare. |
+
+## SHARED-01 — Definizione dei KPI e delle regole di calcolo (`#40`, chiusa)
+
+Su GitHub è assegnata a tutti (Alessandro, Michele, Fabrizio, Mattia, Andrea): da indicare chi ha fatto cosa.
+
+| Issue | Task | Stato |
+|---|---|---|
+| `#41` | SHARED-01-01 Definire visitatori totali e picco di presenza. | Chiusa |
+| `#42` | SHARED-01-02 Concordare il significato di saturazione degli spazi e ricavo per metro quadrato | Chiusa |
+| `#43` | SHARED-01-03 Definire il costo per contatto e cosa viene conteggiato come contatto. | Chiusa |
+| `#44` | SHARED-01-04 Stabilire le regole di conteggio delle visite, dei duplicati e degli intervalli temporali. | Chiusa |
+| `#45` | SHARED-01-05 Documentare le assunzioni quando i dati non consentono un calcolo preciso. | Chiusa |
 
 ---
 
