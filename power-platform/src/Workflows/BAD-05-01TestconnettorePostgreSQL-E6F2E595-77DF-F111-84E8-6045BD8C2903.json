@@ -36,6 +36,14 @@
               "type": "object",
               "properties": {},
               "required": []
+            },
+            "headersSchema": {
+              "x-ms-user-name-encoded": {
+                "title": "Nome utente",
+                "type": "string",
+                "format": "byte",
+                "x-ms-dynamically-added": false
+              }
             }
           }
         }
@@ -66,9 +74,9 @@
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
             },
             "parameters": {
-              "table": "[core].[payment]",
-              "$filter": "contract_id le 2 and due_amount gt 3000",
-              "$top": 5
+              "table": "flow.v_payment_due",
+              "$filter": "is_paid eq false",
+              "$top": 20
             },
             "authentication": {
               "type": "Raw",
@@ -78,7 +86,7 @@
         }
       }
     },
-    "templateName": null
+    "templateName": ""
   },
   "schemaVersion": "1.0.0.0"
 }

@@ -1,0 +1,397 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_postgresql": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedpostgresql_7682c"
+        },
+        "api": {
+          "name": "shared_postgresql"
+        }
+      },
+      "shared_onedriveforbusiness": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedonedriveforbusiness_cdbc8"
+        },
+        "api": {
+          "name": "shared_onedriveforbusiness"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedoffice365_dfffc"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "f7e18204-48e0-43e0-99c2-0e3f3b69bc6f"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "NumeroPreventivo",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Immettere l'input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Inizializza_variabile": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "c53a78e2-98ae-425b-91aa-24bc901f0b14"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "IndirizzoProva",
+                "type": "string",
+                "value": "nazzarofabrizio@yahoo.it"
+              }
+            ]
+          }
+        },
+        "LeggiPreventivo": {
+          "runAfter": {
+            "Inizializza_variabile": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8865e143-83df-41e8-b6d7-0cee8d778ae4"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[quote]",
+              "$filter": "quote_number eq '@{triggerBody()['text']}'",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "LeggiRighe": {
+          "runAfter": {
+            "LeggiPreventivo": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "79d3a119-3342-4b98-b8b4-7275b352c42e"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[quote_line]",
+              "$filter": "quote_id eq @{first(body('LeggiPreventivo')?['value'])?['quote_id']}",
+              "$orderby": "line_no"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "LeggiEspositore": {
+          "runAfter": {
+            "LeggiRighe": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f050efdc-3be9-43ae-b92f-26faf31e803c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[exhibitor]",
+              "$filter": "\texhibitor_id eq @{first(body('LeggiPreventivo')?['value'])?['exhibitor_id']}",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "LeggiReferente": {
+          "runAfter": {
+            "LeggiEspositore": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5ec40ff0-bcef-4bf8-8dfb-7c8fcd1fd25e"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[exhibitor_contact]",
+              "$filter": "exhibitor_id eq @{first(body('LeggiPreventivo')?['value'])?['exhibitor_id']} and is_primary eq true",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Respond_to_a_Power_App_or_flow": {
+          "runAfter": {
+            "Elimina_file": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "03f93303-1df5-4319-ad71-1166d01751eb"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "esito": "ok"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "esito": {
+                  "title": "esito",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "LeggiEdizione": {
+          "runAfter": {
+            "LeggiReferente": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d962d9f9-a24d-408c-b5ef-e45387ee9cb4"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[edition]",
+              "$filter": "edition_id eq @{first(body('LeggiPreventivo')?['value'])?['edition_id']}",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "SelezionaRighe": {
+          "runAfter": {
+            "LeggiEdizione": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "065373df-9875-484e-9472-8ceb5b490047"
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@body('LeggiRighe')?['value']",
+            "select": "@concat('<tr><td>', item()?['line_no'], '</td><td>', item()?['description'], '</td><td class=\"n\">', formatNumber(item()?['quantity'], '#,##0.##', 'it-IT'), '</td><td class=\"n\">', formatNumber(item()?['unit_price'], '#,##0.00', 'it-IT'), '</td><td class=\"n\">', formatNumber(item()?['amount'], '#,##0.00', 'it-IT'), '</td></tr>')"
+          }
+        },
+        "RigheHtml": {
+          "runAfter": {
+            "SelezionaRighe": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "da54db73-6115-431c-96f9-11fb8af3a65f"
+          },
+          "type": "Compose",
+          "inputs": "@join(body('SelezionaRighe'), '')"
+        },
+        "DocumentoHtml": {
+          "runAfter": {
+            "LogoBase64": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "43fdcfaf-ebee-45b3-9460-8a0227b40940"
+          },
+          "type": "Compose",
+          "inputs": "<html><head><meta charset=\"utf-8\"><style>\nbody{font-family:'Segoe UI',Arial,sans-serif;font-size:10.5pt;color:#1B2033;margin:0}\ntable{border-collapse:collapse}\n.banda td{background:#4F46E5;color:#FFFFFF;padding:18px 22px}\n.titolo{font-size:18pt;font-weight:bold;margin:0}\n.sottotitolo{font-size:9.5pt;color:#C7D2FE}\n.etdoc{font-size:9pt;color:#C7D2FE;letter-spacing:2px}\n.numdoc{font-size:18pt;font-weight:bold}\n.meta td{background:#EEF1F7;padding:10px 14px}\n.et{font-size:8pt;color:#5A6275;letter-spacing:1px}\n.val{font-size:11pt;font-weight:bold;color:#1B2033}\n.cliente{border-left:4px solid #4F46E5;background:#FFFFFF;padding:10px 16px;border-top:1px solid #D9DEE8;border-right:1px solid #D9DEE8;border-bottom:1px solid #D9DEE8}\n.nome{font-size:13pt;font-weight:bold}\n.sec{font-size:9.5pt;color:#5A6275}\ntable.voci{width:100%}\ntable.voci th{background:#EEF1F7;color:#5A6275;font-size:8pt;letter-spacing:1px;text-align:left;padding:8px;border-bottom:2px solid #4F46E5}\ntable.voci td{padding:9px 8px;border-bottom:1px solid #D9DEE8}\ntable.voci th.n,.n{text-align:right}\ntable.tot td{padding:6px 12px}\ntr.netto td{background:#4F46E5;color:#FFFFFF;font-weight:bold;font-size:12pt}\n.note{font-size:8.5pt;color:#5A6275;background:#EEF1F7;padding:10px 14px}\ntd.f{border-top:1px solid #5A6275;padding-top:4px;font-size:8.5pt;color:#5A6275;width:45%}\n.piede{font-size:7.5pt;color:#5A6275;text-align:center}\n</style></head><body>\n<table width=\"100%\" class=\"banda\"><tr>\n<td width=\"64\"><img src=\"data:image/png;base64,@{outputs('LogoBase64')}\" width=\"56\" height=\"56\"></td>\n<td><div class=\"titolo\">@{first(body('LeggiEdizione')?['value'])?['name']}</div><div class=\"sottotitolo\">Ufficio commerciale</div></td>\n<td class=\"n\"><div class=\"etdoc\">PREVENTIVO</div><div class=\"numdoc\">@{first(body('LeggiPreventivo')?['value'])?['quote_number']}</div></td>\n</tr></table>\n<br>\n<table width=\"100%\" class=\"meta\"><tr>\n<td width=\"32%\"><div class=\"et\">DATA EMISSIONE</div><div class=\"val\">@{convertFromUtc(utcNow(), 'W. Europe Standard Time', 'dd/MM/yyyy')}</div></td>\n<td width=\"2%\" style=\"background:#FFFFFF\"></td>\n<td width=\"32%\"><div class=\"et\">VALIDO FINO AL</div><div class=\"val\">@{formatDateTime(first(body('LeggiPreventivo')?['value'])?['valid_until'], 'dd/MM/yyyy')}</div></td>\n<td width=\"2%\" style=\"background:#FFFFFF\"></td>\n<td width=\"32%\"><div class=\"et\">CODICE ESPOSITORE</div><div class=\"val\">@{first(body('LeggiEspositore')?['value'])?['exhibitor_code']}</div></td>\n</tr></table>\n<br>\n<div class=\"et\">SPETTABILE</div>\n<div class=\"cliente\"><div class=\"nome\">@{first(body('LeggiEspositore')?['value'])?['legal_name']}</div><div class=\"sec\">P. IVA @{first(body('LeggiEspositore')?['value'])?['vat_number']} · @{first(body('LeggiEspositore')?['value'])?['city']}</div><div class=\"sec\">Alla c.a. di @{coalesce(first(body('LeggiReferente')?['value'])?['full_name'], '—')}</div></div>\n<br>\n<table class=\"voci\"><tr><th width=\"30\">N.</th><th>DESCRIZIONE</th><th class=\"n\" width=\"70\">QUANTITÀ</th><th class=\"n\" width=\"110\">PREZZO UNIT. €</th><th class=\"n\" width=\"100\">IMPORTO €</th></tr>\n@{outputs('RigheHtml')}\n</table>\n<table width=\"100%\"><tr><td></td><td width=\"300\">\n<table class=\"tot\" width=\"100%\">\n<tr><td>Totale listino</td><td class=\"n\">@{formatNumber(first(body('LeggiPreventivo')?['value'])?['list_amount'], '#,##0.00', 'it-IT')} €</td></tr>\n@{if(greater(first(body('LeggiPreventivo')?['value'])?['discount_pct'], 0), concat('<tr><td>Sconto ', formatNumber(mul(first(body('LeggiPreventivo')?['value'])?['discount_pct'], 100), '0.##', 'it-IT'), ' %</td><td class=\"n\">- ', formatNumber(sub(first(body('LeggiPreventivo')?['value'])?['list_amount'], first(body('LeggiPreventivo')?['value'])?['net_amount']), '#,##0.00', 'it-IT'), ' €</td></tr>'), '')}\n<tr class=\"netto\"><td>Totale netto</td><td class=\"n\">@{formatNumber(first(body('LeggiPreventivo')?['value'])?['net_amount'], '#,##0.00', 'it-IT')} €</td></tr>\n</table></td></tr></table>\n<br>\n<div class=\"note\">Importi in euro, IVA esclusa. L'offerta è valida fino al @{formatDateTime(first(body('LeggiPreventivo')?['value'])?['valid_until'], 'dd/MM/yyyy')}; fino a quella data gli spazi indicati restano riservati. Per accettare l'offerta restituire questo documento timbrato e firmato.</div>\n<table width=\"100%\" style=\"margin-top:70px\"><tr><td class=\"f\">Luogo e data</td><td width=\"10%\"></td><td class=\"f\">Per accettazione: timbro e firma del legale rappresentante</td></tr></table>\n<br><br>\n<div class=\"piede\">@{first(body('LeggiEdizione')?['value'])?['name']} · documento generato dal back-office ARCADE</div>\n</body></html>"
+        },
+        "CreaHtml": {
+          "runAfter": {
+            "DocumentoHtml": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9b01054d-d9a1-4fc4-92df-cc435c187fcc"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_onedriveforbusiness",
+              "operationId": "CreateFile",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness"
+            },
+            "parameters": {
+              "folderPath": "/ArcadePreventivi",
+              "name": "@{first(body('LeggiPreventivo')?['value'])?['quote_number']}.html",
+              "body": "@outputs('DocumentoHtml')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "contentTransfer": {
+              "transferMode": "Chunked"
+            }
+          }
+        },
+        "ConvertiPdf": {
+          "runAfter": {
+            "CreaHtml": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ec03bb81-16f4-4f6d-af27-c24a0423bd23"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_onedriveforbusiness",
+              "operationId": "ConvertFile",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness"
+            },
+            "parameters": {
+              "id": "@outputs('CreaHtml')?['body/Id']",
+              "type": "PDF"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "InviaMail": {
+          "runAfter": {
+            "ConvertiPdf": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2907331f-db2b-41d4-82e5-55fa80a3c92e"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_office365",
+              "operationId": "SendEmailV2",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+            },
+            "parameters": {
+              "emailMessage/To": "@variables('IndirizzoProva')",
+              "emailMessage/Subject": "Preventivo @{first(body('LeggiPreventivo')?['value'])?['quote_number']} - @{first(body('LeggiEdizione')?['value'])?['name']}",
+              "emailMessage/Body": "<p>[PROVA] In produzione questa mail andrebbe a: @{coalesce(first(body('LeggiReferente')?['value'])?['email'], 'nessun referente principale')}<br>\nGentile @{coalesce(first(body('LeggiReferente')?['value'])?['full_name'], 'Cliente')},<br>\n<br>\nin allegato il preventivo @{first(body('LeggiPreventivo')?['value'])?['quote_number']} per la partecipazione a @{first(body('LeggiEdizione')?['value'])?['name']}, valido fino al @{formatDateTime(first(body('LeggiPreventivo')?['value'])?['valid_until'], 'dd/MM/yyyy')}.<br>\n<br>\nPer confermare, rispondete a questa mail allegando il documento timbrato e firmato.<br>\n<br>\nCordiali saluti<br>\nUfficio commerciale ARCADE Milano</p>",
+              "emailMessage/Attachments": [
+                {
+                  "Name": "@{first(body('LeggiPreventivo')?['value'])?['quote_number']}.pdf",
+                  "ContentBytes": "@body('ConvertiPdf')"
+                }
+              ],
+              "emailMessage/Importance": "Normal"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Elimina_file": {
+          "runAfter": {
+            "InviaMail": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7eeb1e69-e882-4536-9190-fc00ee941be7"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_onedriveforbusiness",
+              "operationId": "DeleteFile",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness"
+            },
+            "parameters": {
+              "id": "@outputs('CreaHtml')?['body/Id']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "LogoBase64": {
+          "runAfter": {
+            "RigheHtml": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "dc3d47bc-6700-433a-8965-4e45b0f69b33"
+          },
+          "type": "Compose",
+          "inputs": "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"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

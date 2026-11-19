@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26102.136" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26103.00162">
+<ImportExportXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26103.165" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26103.00165">
   <Entities />
   <Roles />
   <Workflows />
@@ -13,6 +13,30 @@
   <EntityDataProviders />
   <CanvasApps />
   <connectionreferences>
+    <connectionreference connectionreferencelogicalname="metis_sharedoffice365_c4e38">
+      <connectionreferencedisplayname>Office 365 Outlook ProgettoMetis-c4e38</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_office365</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <promptingbehavior>0</promptingbehavior>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="metis_sharedoffice365_dfffc">
+      <connectionreferencedisplayname>Office 365 Outlook ProgettoMetis-dfffc</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_office365</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <promptingbehavior>0</promptingbehavior>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="metis_sharedonedriveforbusiness_cdbc8">
+      <connectionreferencedisplayname>OneDrive for Business ProgettoMetis-cdbc8</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <promptingbehavior>0</promptingbehavior>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
     <connectionreference connectionreferencelogicalname="metis_sharedpostgresql_7682c">
       <connectionreferencedisplayname>PostgreSQL ProgettoMetis-7682c</connectionreferencedisplayname>
       <connectorid>/providers/Microsoft.PowerApps/apis/shared_postgresql</connectorid>
@@ -23,46 +47,6 @@
     </connectionreference>
     <connectionreference connectionreferencelogicalname="metis_sharedpostgresql_e4b8b">
       <connectionreferencedisplayname>PostgreSQL ProgettoMetis-e4b8b</connectionreferencedisplayname>
-      <connectorid>/providers/Microsoft.PowerApps/apis/shared_postgresql</connectorid>
-      <iscustomizable>1</iscustomizable>
-      <promptingbehavior>0</promptingbehavior>
-      <statecode>0</statecode>
-      <statuscode>1</statuscode>
-    </connectionreference>
-    <connectionreference connectionreferencelogicalname="new_sharedpostgresql_2a192">
-      <connectionreferencedisplayname>PostgreSQL Default-2a192</connectionreferencedisplayname>
-      <connectorid>/providers/Microsoft.PowerApps/apis/shared_postgresql</connectorid>
-      <iscustomizable>1</iscustomizable>
-      <promptingbehavior>0</promptingbehavior>
-      <statecode>0</statecode>
-      <statuscode>1</statuscode>
-    </connectionreference>
-    <connectionreference connectionreferencelogicalname="new_sharedpostgresql_2cc3b">
-      <connectionreferencedisplayname>PostgreSQL Default-2cc3b</connectionreferencedisplayname>
-      <connectorid>/providers/Microsoft.PowerApps/apis/shared_postgresql</connectorid>
-      <iscustomizable>1</iscustomizable>
-      <promptingbehavior>0</promptingbehavior>
-      <statecode>0</statecode>
-      <statuscode>1</statuscode>
-    </connectionreference>
-    <connectionreference connectionreferencelogicalname="new_sharedpostgresql_a8695">
-      <connectionreferencedisplayname>PostgreSQL Default-a8695</connectionreferencedisplayname>
-      <connectorid>/providers/Microsoft.PowerApps/apis/shared_postgresql</connectorid>
-      <iscustomizable>1</iscustomizable>
-      <promptingbehavior>0</promptingbehavior>
-      <statecode>0</statecode>
-      <statuscode>1</statuscode>
-    </connectionreference>
-    <connectionreference connectionreferencelogicalname="new_sharedpostgresql_aa672">
-      <connectionreferencedisplayname>PostgreSQL Default-aa672</connectionreferencedisplayname>
-      <connectorid>/providers/Microsoft.PowerApps/apis/shared_postgresql</connectorid>
-      <iscustomizable>1</iscustomizable>
-      <promptingbehavior>0</promptingbehavior>
-      <statecode>0</statecode>
-      <statuscode>1</statuscode>
-    </connectionreference>
-    <connectionreference connectionreferencelogicalname="new_sharedpostgresql_ceea0">
-      <connectionreferencedisplayname>PostgreSQL Default-ceea0</connectionreferencedisplayname>
       <connectorid>/providers/Microsoft.PowerApps/apis/shared_postgresql</connectorid>
       <iscustomizable>1</iscustomizable>
       <promptingbehavior>0</promptingbehavior>

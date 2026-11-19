@@ -1,0 +1,254 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_postgresql": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedpostgresql_e4b8b"
+        },
+        "api": {
+          "name": "shared_postgresql"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedoffice365_c4e38"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "Email amministrazione (metis_EmailAmministrazione)": {
+          "defaultValue": "fabrizio.nazzaro@edu-its.it",
+          "type": "String",
+          "metadata": {
+            "schemaName": "metis_EmailAmministrazione",
+            "description": "Destinatario delle notifiche per amministrazione e direzione (flussi BAD-05). Valore di test, non del cliente."
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Week",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-11-16T09:00:00Z",
+            "schedule": {
+              "weekDays": [
+                "Monday"
+              ],
+              "hours": [
+                "8"
+              ],
+              "minutes": [
+                0
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "351de87c-5fd1-425e-904c-538d7ac6f78f"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Inizializza_totale": {
+          "runAfter": {},
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "totale",
+                "type": "integer",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "Leggi_riepilogo": {
+          "runAfter": {
+            "Inizializza_totale": [
+              "Succeeded"
+            ]
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[analytics].[kpi_data_quality_anomaly]",
+              "$filter": "resolution_status eq 'OPEN' and (severity eq 'ERROR' or severity eq 'CRITICAL')",
+              "$orderby": "severity asc"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Leggi_dettaglio": {
+          "runAfter": {
+            "Leggi_riepilogo": [
+              "Succeeded"
+            ]
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[dq].[anomaly]",
+              "$filter": "resolution_status eq 'OPEN' and (severity eq 'ERROR' or severity eq 'CRITICAL')",
+              "$orderby": "severity asc",
+              "$top": 20
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Somma_anomalie": {
+          "foreach": "@body('Leggi_riepilogo')?['value']",
+          "actions": {
+            "Aggiungi_al_totale": {
+              "runAfter": {},
+              "type": "IncrementVariable",
+              "inputs": {
+                "name": "totale",
+                "value": "@int(items('Somma_anomalie')?['anomalies'])"
+              }
+            }
+          },
+          "runAfter": {
+            "Leggi_dettaglio": [
+              "Succeeded"
+            ]
+          },
+          "type": "Foreach"
+        },
+        "Seleziona_riepilogo": {
+          "runAfter": {
+            "Somma_anomalie": [
+              "Succeeded"
+            ]
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@body('Leggi_riepilogo')?['value']",
+            "select": {
+              "Gravità": "@item()?['severity']",
+              "Regola": "@item()?['rule_code']",
+              "Area": "@item()?['area']",
+              "Fonte": "@item()?['source_code']",
+              "Azione applicata": "@item()?['action_applied']",
+              "Anomalie aperte": "@item()?['anomalies']"
+            }
+          }
+        },
+        "Tabella_riepilogo": {
+          "runAfter": {
+            "Seleziona_riepilogo": [
+              "Succeeded"
+            ]
+          },
+          "type": "Table",
+          "inputs": {
+            "from": "@body('Seleziona_riepilogo')",
+            "format": "HTML"
+          }
+        },
+        "Seleziona_dettaglio": {
+          "runAfter": {
+            "Tabella_riepilogo": [
+              "Succeeded"
+            ]
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@body('Leggi_dettaglio')?['value']",
+            "select": {
+              "ID": "@item()?['anomaly_id']",
+              "Gravità": "@item()?['severity']",
+              "Regola": "@item()?['rule_code']",
+              "Dato": "@item()?['entity']",
+              "Riferimento": "@item()?['record_ref']",
+              "Azione applicata": "@item()?['action_applied']",
+              "Rilevata il": "@if(empty(item()?['detected_at']),'',convertFromUtc(item()?['detected_at'],'W. Europe Standard Time','dd/MM/yyyy HH:mm'))"
+            }
+          }
+        },
+        "Tabella_dettaglio": {
+          "runAfter": {
+            "Seleziona_dettaglio": [
+              "Succeeded"
+            ]
+          },
+          "type": "Table",
+          "inputs": {
+            "from": "@body('Seleziona_dettaglio')",
+            "format": "HTML"
+          }
+        },
+        "Ci_sono_anomalie": {
+          "actions": {
+            "Invia_riepilogo": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "authentication": "@parameters('$authentication')",
+                "parameters": {
+                  "emailMessage/To": "@parameters('Email amministrazione (metis_EmailAmministrazione)')",
+                  "emailMessage/Subject": "ARCADE Milano · Anomalie dati aperte: @{variables('totale')} (gravità ERROR o CRITICAL)",
+                  "emailMessage/Body": "<div style=\"font-family:Segoe UI,Arial;font-size:14px;color:#1E1B4B\"><p>Ciao,</p><p>queste sono le <b>anomalie dei dati ancora aperte</b> con gravità ERROR o CRITICAL, aggiornate a @{convertFromUtc(utcNow(),'W. Europe Standard Time','dd/MM/yyyy HH:mm')}. In totale sono <b>@{variables('totale')}</b>.</p><h3 style=\"color:#4F46E5\">Riepilogo per regola</h3>@{replace(replace(body('Tabella_riepilogo'),'<table>','<table border=\"1\" cellpadding=\"6\" style=\"border-collapse:collapse;font-family:Segoe UI,Arial;font-size:13px;border-color:#E3E6F0\">'),'<th>','<th style=\"background:#EEF2FF;color:#1E1B4B;text-align:left\">')}<h3 style=\"color:#4F46E5\">Prime 20 anomalie (prima le CRITICAL)</h3>@{replace(replace(body('Tabella_dettaglio'),'<table>','<table border=\"1\" cellpadding=\"6\" style=\"border-collapse:collapse;font-family:Segoe UI,Arial;font-size:13px;border-color:#E3E6F0\">'),'<th>','<th style=\"background:#EEF2FF;color:#1E1B4B;text-align:left\">')}<p style=\"color:#6B7280;font-size:12px\">Le anomalie si prendono in carico cambiando lo stato in <code>dq.anomaly</code> (ACKNOWLEDGED, RESOLVED o WONT_FIX). L'email non contiene dati personali: la riga originale (<code>source_record</code>) non viene letta. Messaggio automatico del flusso BAD-05-05, solution Progetto Metis.</p></div>",
+                  "emailMessage/Importance": "Normal"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Tabella_dettaglio": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {}
+          },
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@length(body('Seleziona_riepilogo'))",
+                  0
+                ]
+              }
+            ]
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

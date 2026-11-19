@@ -1,0 +1,13 @@
+<environmentvariabledefinition schemaname="metis_GiorniPreavvisoPagamenti">
+  <description default="Giorni di anticipo per i promemoria di acconti e saldi (BAD-05-03). Valore da confermare con il cliente. Valore corrente 7 PROVVISORIO (16/11), in attesa del cliente.">
+    <label description="Giorni di anticipo per i promemoria di acconti e saldi (BAD-05-03). Valore da confermare con il cliente. Valore corrente 7 PROVVISORIO (16/11), in attesa del cliente." languagecode="1040" />
+  </description>
+  <displayname default="Giorni preavviso pagamenti">
+    <label description="Giorni preavviso pagamenti" languagecode="1040" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000001</type>
+</environmentvariabledefinition>

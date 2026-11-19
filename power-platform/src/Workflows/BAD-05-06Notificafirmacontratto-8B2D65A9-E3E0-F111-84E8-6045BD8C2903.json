@@ -1,0 +1,261 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_postgresql": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedpostgresql_e4b8b"
+        },
+        "api": {
+          "name": "shared_postgresql"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedoffice365_c4e38"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "Email amministrazione (metis_EmailAmministrazione)": {
+          "defaultValue": "fabrizio.nazzaro@edu-its.it",
+          "type": "String",
+          "metadata": {
+            "schemaName": "metis_EmailAmministrazione",
+            "description": "Destinatario delle notifiche per amministrazione e direzione (flussi BAD-05). Valore di test, non del cliente."
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "aa92cdbd-0cdc-4938-a1e3-9592d74f4be3"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "title": "contract_id",
+                  "type": "number",
+                  "x-ms-dynamically-added": true,
+                  "description": "Id del contratto appena firmato (core.contract.contract_id)",
+                  "x-ms-content-hint": "NUMBER"
+                }
+              },
+              "required": [
+                "number"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Leggi_contratto": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "c35e9aa5-b671-4169-b0ac-6f9f14645876"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[contract]",
+              "id": "@triggerBody()['number']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Leggi_espositore": {
+          "runAfter": {
+            "Leggi_contratto": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7c7e9f50-1d2e-477c-8496-0355fa645eb7"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[exhibitor]",
+              "id": "@outputs('Leggi_contratto')?['body/exhibitor_id']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Leggi_acconto": {
+          "runAfter": {
+            "Leggi_espositore": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "bf6dcf4d-99dc-41fa-82f0-b820cc34db0a"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[payment]",
+              "$filter": "contract_id eq @{triggerBody()['number']} and kind eq 'DEPOSIT'",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Leggi_saldo": {
+          "runAfter": {
+            "Leggi_acconto": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "29220748-07c1-40c1-829a-5f8c300818b2"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[payment]",
+              "$filter": "contract_id eq @{triggerBody()['number']} and kind eq 'BALANCE'",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Corpo_email": {
+          "runAfter": {
+            "Leggi_saldo": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e59c6fa4-185a-41b5-96e0-f3604336c1eb"
+          },
+          "type": "Compose",
+          "inputs": "@concat('<p><b>Contratto firmato</b></p><p>Numero contratto: ', coalesce(body('Leggi_contratto')?['contract_number'], 'n.d.'), '<br>Espositore: ', coalesce(body('Leggi_espositore')?['legal_name'], 'n.d.'), '<br>Importo netto: ', formatNumber(float(coalesce(body('Leggi_contratto')?['net_amount'], 0)), 'N2', 'it-IT'), ' EUR<br>Data firma: ', if(empty(body('Leggi_contratto')?['signed_on']), 'n.d.', formatDateTime(coalesce(body('Leggi_contratto')?['signed_on'], '1900-01-01'), 'dd/MM/yyyy')), '</p><p>Acconto: ', formatNumber(float(coalesce(first(body('Leggi_acconto')?['value'])?['due_amount'], 0)), 'N2', 'it-IT'), ' EUR entro il ', if(empty(first(body('Leggi_acconto')?['value'])?['due_on']), 'n.d.', formatDateTime(coalesce(first(body('Leggi_acconto')?['value'])?['due_on'], '1900-01-01'), 'dd/MM/yyyy')), '<br>Saldo: ', formatNumber(float(coalesce(first(body('Leggi_saldo')?['value'])?['due_amount'], 0)), 'N2', 'it-IT'), ' EUR entro il ', if(empty(first(body('Leggi_saldo')?['value'])?['due_on']), 'n.d.', formatDateTime(coalesce(first(body('Leggi_saldo')?['value'])?['due_on'], '1900-01-01'), 'dd/MM/yyyy')), '</p>')"
+        },
+        "Invia_notifica": {
+          "runAfter": {
+            "Corpo_email": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "cce6cd56-359c-4b8f-92da-b5bdbef19d3d"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_office365",
+              "operationId": "SendEmailV2",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+            },
+            "parameters": {
+              "emailMessage/To": "@parameters('Email amministrazione (metis_EmailAmministrazione)')",
+              "emailMessage/Subject": "@concat('Contratto firmato ', coalesce(body('Leggi_contratto')?['contract_number'], ''), ' - ', coalesce(body('Leggi_espositore')?['legal_name'], ''))",
+              "emailMessage/Body": "<p>@{outputs('Corpo_email')}</p>",
+              "emailMessage/Importance": "Normal"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Rispondi_ok": {
+          "runAfter": {
+            "Invia_notifica": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a37db782-63d7-445e-92be-b377f95c17d8"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "esito": "ok"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "esito": {
+                  "title": "esito",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Rispondi_errore": {
+          "runAfter": {
+            "Invia_notifica": [
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "94ce7e20-3d04-4e20-860a-c96f2924be76"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "esito": "errore"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "esito": {
+                  "title": "esito",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

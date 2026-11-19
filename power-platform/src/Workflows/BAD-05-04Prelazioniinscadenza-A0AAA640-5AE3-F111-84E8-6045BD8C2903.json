@@ -1,0 +1,168 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_postgresql": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedpostgresql_e4b8b"
+        },
+        "api": {
+          "name": "shared_postgresql"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedoffice365_c4e38"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "Giorni preavviso prelazioni (metis_GiorniPreavvisoPrelazioni)": {
+          "type": "Float",
+          "metadata": {
+            "schemaName": "metis_GiorniPreavvisoPrelazioni",
+            "description": "Giorni di anticipo per avvisare delle prelazioni in scadenza (BAD-05-04). Valore provvisorio, in attesa del cliente."
+          }
+        },
+        "Email commerciale (metis_EmailCommerciale)": {
+          "defaultValue": "lorenzo.tosatto@edu-its.it",
+          "type": "String",
+          "metadata": {
+            "schemaName": "metis_EmailCommerciale",
+            "description": "Destinatario delle notifiche per l'ufficio commerciale (flussi BAD-05). Valore di test, non del cliente."
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-11-16T09:00:00Z",
+            "schedule": {
+              "hours": [
+                "7"
+              ],
+              "minutes": [
+                0
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "4f8424ba-a7ae-41e8-bd74-c599cc982dbc"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Leggi_prelazioni": {
+          "runAfter": {},
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "authentication": "@parameters('$authentication')",
+            "parameters": {
+              "table": "flow.v_preemption_due",
+              "$filter": "for_edition_status eq 'SALES_OPEN' and is_open eq true and days_to_deadline le @{parameters('Giorni preavviso prelazioni (metis_GiorniPreavvisoPrelazioni)')}",
+              "$orderby": "days_to_deadline asc"
+            }
+          }
+        },
+        "Seleziona": {
+          "runAfter": {
+            "Leggi_prelazioni": [
+              "Succeeded"
+            ]
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@body('Leggi_prelazioni')?['value']",
+            "select": {
+              "Stand": "@item()?['stand_code']",
+              "Espositore": "@concat(item()?['exhibitor_code'],' · ',item()?['legal_name'])",
+              "Contratto di origine": "@item()?['source_contract_number']",
+              "Edizione": "@item()?['for_edition_year']",
+              "Scadenza": "@formatDateTime(item()?['deadline'],'dd/MM/yyyy')",
+              "Giorni mancanti": "@if(less(int(item()?['days_to_deadline']),0),concat('scaduta da ',string(sub(0,int(item()?['days_to_deadline']))),' gg'),if(equals(int(item()?['days_to_deadline']),0),'scade oggi',string(item()?['days_to_deadline'])))"
+            }
+          }
+        },
+        "Crea_tabella_HTML": {
+          "runAfter": {
+            "Seleziona": [
+              "Succeeded"
+            ]
+          },
+          "type": "Table",
+          "inputs": {
+            "from": "@body('Seleziona')",
+            "format": "HTML"
+          }
+        },
+        "Ci_sono_prelazioni": {
+          "actions": {
+            "Invia_avviso": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "authentication": "@parameters('$authentication')",
+                "parameters": {
+                  "emailMessage/To": "@parameters('Email commerciale (metis_EmailCommerciale)')",
+                  "emailMessage/Subject": "ARCADE Milano · Prelazioni in scadenza: @{length(body('Seleziona'))}",
+                  "emailMessage/Body": "<div style=\"font-family:Segoe UI,Arial;font-size:14px;color:#1E1B4B\"><p>Ciao,</p><p>queste prelazioni sono <b>ancora aperte</b> e scadono entro <b>@{parameters('Giorni preavviso prelazioni (metis_GiorniPreavvisoPrelazioni)')} giorni</b> (o sono già scadute senza una decisione). Contatta l'espositore prima che lo stand torni libero.</p>@{replace(replace(body('Crea_tabella_HTML'),'<table>','<table border=\"1\" cellpadding=\"6\" style=\"border-collapse:collapse;font-family:Segoe UI,Arial;font-size:13px;border-color:#E3E6F0\">'),'<th>','<th style=\"background:#EEF2FF;color:#1E1B4B;text-align:left\">')}<p style=\"color:#6B7280;font-size:12px\">Dati di @{convertFromUtc(utcNow(),'W. Europe Standard Time','dd/MM/yyyy HH:mm')}. Messaggio automatico del flusso BAD-05-04, solution Progetto Metis.</p></div>",
+                  "emailMessage/Importance": "Normal"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Crea_tabella_HTML": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {}
+          },
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@length(body('Seleziona'))",
+                  0
+                ]
+              }
+            ]
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

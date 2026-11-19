@@ -1,0 +1,169 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_postgresql": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedpostgresql_e4b8b"
+        },
+        "api": {
+          "name": "shared_postgresql"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedoffice365_c4e38"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "Email commerciale (metis_EmailCommerciale)": {
+          "defaultValue": "lorenzo.tosatto@edu-its.it",
+          "type": "String",
+          "metadata": {
+            "schemaName": "metis_EmailCommerciale",
+            "description": "Destinatario delle notifiche per l'ufficio commerciale (flussi BAD-05). Valore di test, non del cliente."
+          }
+        },
+        "Giorni preavviso pagamenti (metis_GiorniPreavvisoPagamenti)": {
+          "type": "Float",
+          "metadata": {
+            "schemaName": "metis_GiorniPreavvisoPagamenti",
+            "description": "Giorni di anticipo per i promemoria di acconti e saldi (BAD-05-03). Valore da confermare con il cliente."
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-11-16T09:00:00Z",
+            "schedule": {
+              "hours": [
+                "7"
+              ],
+              "minutes": [
+                0
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "4f8424ba-a7ae-41e8-bd74-c599cc982dbc"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Leggi_pagamenti_in_scadenza": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "6e753ac8-e073-4828-b105-0d254a3fce56"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "flow.v_payment_due",
+              "$filter": "edition_status eq 'SALES_OPEN' and contract_status eq 'SIGNED' and is_paid eq false and days_to_due le @{parameters('Giorni preavviso pagamenti (metis_GiorniPreavvisoPagamenti)')}",
+              "$orderby": "days_to_due asc"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Seleziona": {
+          "runAfter": {
+            "Leggi_pagamenti_in_scadenza": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "946bcc3b-7683-4c04-b32e-606a113f1e80"
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@outputs('Leggi_pagamenti_in_scadenza')?['body/value']",
+            "select": "@addProperty(addProperty(addProperty(addProperty(addProperty(addProperty(addProperty(json('{}'), 'Contratto', item()?['contract_number']), 'Espositore', item()?['legal_name']), 'Stand', string(coalesce(item()?['stand_codes'], ''))), 'Tipo', if(equals(item()?['kind'], 'DEPOSIT'), 'Acconto', 'Saldo')), 'Scadenza', formatDateTime(item()?['due_on'], 'dd/MM/yyyy')), 'Importo (EUR)', formatNumber(float(item()?['due_amount']), 'N2', 'it-IT')), 'Stato', if(less(int(item()?['days_to_due']), 0), concat('SCADUTO da ', string(sub(0, int(item()?['days_to_due']))), ' gg'), if(equals(int(item()?['days_to_due']), 0), 'Scade oggi', concat('Tra ', string(item()?['days_to_due']), ' gg'))))"
+          }
+        },
+        "Crea_tabella_HTML": {
+          "runAfter": {
+            "Seleziona": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "19c5950a-b41f-472f-a386-eb6d005f4221"
+          },
+          "type": "Table",
+          "inputs": {
+            "from": "@body('Seleziona')",
+            "format": "HTML"
+          }
+        },
+        "Condizione": {
+          "actions": {
+            "Invia_un_messaggio_di_posta_elettronica_(v2)": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "85854168-c158-407d-b8bd-c91ecee8236f"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('Email commerciale (metis_EmailCommerciale)')",
+                  "emailMessage/Subject": "@concat('Promemoria pagamenti ARCADE: ', string(length(body('Seleziona'))), ' acconti/saldi in scadenza o scaduti')",
+                  "emailMessage/Body": "<p>@{concat('<style>table{border-collapse:collapse;font-family:Segoe UI,Arial,sans-serif;font-size:13px}th{background:#1f3864;color:#fff;text-align:left}th,td{border:1px solid #bbb;padding:4px 8px}</style><p>Buongiorno,</p><p>ecco gli acconti e i saldi <b>non ancora pagati</b> in scadenza nei prossimi giorni o già scaduti (edizioni in vendita, contratti firmati), dal più urgente:</p>', body('Crea_tabella_HTML'), '<p style=\"color:#777;font-size:11px\">Messaggio automatico del flusso BAD-05-03, inviato ogni mattina alle 7:00.</p>')}</p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Crea_tabella_HTML": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greater": [
+              "@length(body('Seleziona'))",
+              0
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "dba8fa41-fc64-49bd-a787-79376016c766"
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

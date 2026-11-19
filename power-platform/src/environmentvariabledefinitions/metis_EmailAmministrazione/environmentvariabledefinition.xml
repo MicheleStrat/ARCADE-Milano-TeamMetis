@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="metis_EmailAmministrazione">
+  <defaultvalue>fabrizio.nazzaro@edu-its.it</defaultvalue>
+  <description default="Destinatario delle notifiche per amministrazione e direzione (flussi BAD-05). Valore di test, non del cliente.">
+    <label description="Destinatario delle notifiche per amministrazione e direzione (flussi BAD-05). Valore di test, non del cliente." languagecode="1040" />
+  </description>
+  <displayname default="Email amministrazione">
+    <label description="Email amministrazione" languagecode="1040" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

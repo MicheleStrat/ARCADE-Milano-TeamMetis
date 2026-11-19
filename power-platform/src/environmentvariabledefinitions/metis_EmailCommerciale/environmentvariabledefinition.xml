@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="metis_EmailCommerciale">
+  <defaultvalue>lorenzo.tosatto@edu-its.it</defaultvalue>
+  <description default="Destinatario delle notifiche per l'ufficio commerciale (flussi BAD-05). Valore di test, non del cliente.">
+    <label description="Destinatario delle notifiche per l'ufficio commerciale (flussi BAD-05). Valore di test, non del cliente." languagecode="1040" />
+  </description>
+  <displayname default="Email commerciale">
+    <label description="Email commerciale" languagecode="1040" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>
