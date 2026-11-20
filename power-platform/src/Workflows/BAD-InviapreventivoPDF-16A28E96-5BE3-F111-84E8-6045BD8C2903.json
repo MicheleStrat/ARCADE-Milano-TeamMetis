@@ -80,7 +80,7 @@
               {
                 "name": "IndirizzoProva",
                 "type": "string",
-                "value": "nazzarofabrizio@yahoo.it"
+                "value": "fabrizio.nazzaro@salato.it"
               }
             ]
           }
@@ -350,6 +350,7 @@
                   "ContentBytes": "@body('ConvertiPdf')"
                 }
               ],
+              "emailMessage/ReplyTo": "fabrizio.nazzaro@itsictpiemonte.onmicrosoft.com",
               "emailMessage/Importance": "Normal"
             },
             "authentication": "@parameters('$authentication')"

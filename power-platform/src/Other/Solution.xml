@@ -86,6 +86,7 @@
       <RootComponent type="29" id="{8fb21aee-a3e1-f111-84e8-6045bd8c2903}" behavior="0" />
       <RootComponent type="29" id="{a0aaa640-5ae3-f111-84e8-6045bd8c2903}" behavior="0" />
       <RootComponent type="29" id="{e6f2e595-77df-f111-84e8-6045bd8c2903}" behavior="0" />
+      <RootComponent type="29" id="{f5cbf9e0-c1e4-f111-84e8-6045bd8c2903}" behavior="0" />
       <RootComponent type="300" schemaName="metis_arcadebackoffice_8cf9a" behavior="0" />
       <RootComponent type="300" schemaName="metis_provacancella_26e10" behavior="0" />
       <RootComponent type="66" schemaName="arc_Arcade.Pianta2D" behavior="0" />

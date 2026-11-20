@@ -2,7 +2,7 @@
   "properties": {
     "connectionReferences": {
       "shared_postgresql": {
-        "runtimeSource": "invoker",
+        "runtimeSource": "embedded",
         "connection": {
           "connectionReferenceLogicalName": "metis_sharedpostgresql_e4b8b"
         },
@@ -11,7 +11,7 @@
         }
       },
       "shared_office365": {
-        "runtimeSource": "invoker",
+        "runtimeSource": "embedded",
         "connection": {
           "connectionReferenceLogicalName": "metis_sharedoffice365_c4e38"
         },

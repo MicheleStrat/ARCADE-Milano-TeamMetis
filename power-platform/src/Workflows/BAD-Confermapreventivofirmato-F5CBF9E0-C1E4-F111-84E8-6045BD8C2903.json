@@ -1,0 +1,597 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_postgresql": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedpostgresql_7682c"
+        },
+        "api": {
+          "name": "shared_postgresql"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedoffice365_dfffc"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "All'arrivo_di_un_nuovo_messaggio_di_posta_elettronica_(V3)": {
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "878755c6-87f0-4f21-b333-3db9d76e7c2c"
+          },
+          "type": "OpenApiConnectionNotification",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_office365",
+              "operationId": "OnNewEmailV3",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+            },
+            "parameters": {
+              "folderPath": "Inbox",
+              "includeAttachments": true,
+              "subjectFilter": "Preventivo PV",
+              "importance": "Any",
+              "fetchOnlyWithAttachment": true
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "conditions": [
+            {
+              "expression": "@or(startsWith(toLower(triggerOutputs()?['body/subject']), 're:'), startsWith(toLower(triggerOutputs()?['body/subject']), 'r:'))"
+            }
+          ]
+        }
+      },
+      "actions": {
+        "Inizializza_variabile": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "081a6ce5-2b36-46b5-b980-b9f2be1f8f80"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "IndirizzoCommerciale",
+                "type": "string",
+                "value": "fabrizio.nazzaro@edu-its.it"
+              }
+            ]
+          }
+        },
+        "NumeroPreventivo": {
+          "runAfter": {
+            "Inizializza_variabile": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "1f91804c-70d5-4d12-9b75-e6c1b0c5a641"
+          },
+          "type": "Compose",
+          "inputs": "@substring(triggerOutputs()?['body/subject'], add(indexOf(triggerOutputs()?['body/subject'], 'Preventivo PV'), 11), 11)"
+        },
+        "LeggiPreventivo": {
+          "runAfter": {
+            "NumeroPreventivo": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "fb8e91de-56b4-4f36-86fd-e7b560dfa5d5"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "parameters": {
+              "table": "[core].[quote]",
+              "$filter": "quote_number eq '@{outputs('NumeroPreventivo')}'",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "PreventivoValido": {
+          "actions": {
+            "LeggiEspositore": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "42607df5-7cda-4318-8fdf-06ffce33dba0"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_postgresql",
+                  "operationId": "GetItems",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+                },
+                "parameters": {
+                  "table": "[core].[exhibitor]",
+                  "$filter": "exhibitor_id eq @{first(body('LeggiPreventivo')?['value'])?['exhibitor_id']}",
+                  "$top": 1
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "ChiediVerifica": {
+              "runAfter": {
+                "LeggiEspositore": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "79436201-0388-4f50-a6fe-cd91910d0e08"
+              },
+              "type": "OpenApiConnectionWebhook",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendMailWithOptions",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "optionsEmailSubscription/Message/To": "@variables('IndirizzoCommerciale')",
+                  "optionsEmailSubscription/Message/Subject": "Verifica firma @{outputs('NumeroPreventivo')} - @{first(body('LeggiEspositore')?['value'])?['legal_name']}",
+                  "optionsEmailSubscription/Message/Options": "Firma presente,Firma mancante,Rifiutato",
+                  "optionsEmailSubscription/Message/Body": "L'espositore @{first(body('LeggiEspositore')?['value'])?['legal_name']} ha risposto al preventivo @{outputs('NumeroPreventivo')} (@{formatNumber(first(body('LeggiPreventivo')?['value'])?['net_amount'], '#,##0.00', 'it-IT')} €, valido fino al @{formatDateTime(first(body('LeggiPreventivo')?['value'])?['valid_until'], 'dd/MM/yyyy')}).\nIl PDF che ha mandato è nella sua risposta, con oggetto \"@{triggerOutputs()?['body/subject']}\". Controlla che ci siano timbro e firma, poi scegli un'opzione.",
+                  "optionsEmailSubscription/Message/Importance": "Normal",
+                  "optionsEmailSubscription/Message/HideHTMLMessage": false,
+                  "optionsEmailSubscription/Message/ShowHTMLConfirmationDialog": false,
+                  "optionsEmailSubscription/Message/HideMicrosoftFooter": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "RileggiPreventivo": {
+              "runAfter": {
+                "ChiediVerifica": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b9cb4a66-1d95-4c3b-a50a-ef0069c0e48e"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_postgresql",
+                  "operationId": "GetItems",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+                },
+                "parameters": {
+                  "table": "[core].[quote]",
+                  "$filter": "quote_number eq '@{outputs('NumeroPreventivo')}'",
+                  "$top": 1
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "SceltaCommerciale": {
+              "runAfter": {
+                "RileggiPreventivo": [
+                  "Succeeded"
+                ]
+              },
+              "cases": {
+                "Firma_presente": {
+                  "case": "Firma presente",
+                  "actions": {
+                    "AncoraInviato": {
+                      "actions": {
+                        "Aggiorna_riga": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "52bd6b42-9dc8-4240-82e2-7e6a4b53bf47"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_postgresql",
+                              "operationId": "PatchItem",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+                            },
+                            "parameters": {
+                              "table": "[core].[quote]",
+                              "id": "@first(body('RileggiPreventivo')?['value'])?['quote_id']",
+                              "item/quote_number": "@first(body('RileggiPreventivo')?['value'])?['quote_number']",
+                              "item/edition_id": "@first(body('RileggiPreventivo')?['value'])?['edition_id']",
+                              "item/exhibitor_id": "@first(body('RileggiPreventivo')?['value'])?['exhibitor_id']",
+                              "item/status": "CONFIRMED",
+                              "item/discount_pct": "@first(body('RileggiPreventivo')?['value'])?['discount_pct']",
+                              "item/list_amount": "@first(body('RileggiPreventivo')?['value'])?['list_amount']",
+                              "item/net_amount": "@first(body('RileggiPreventivo')?['value'])?['net_amount']",
+                              "item/created_at": "@first(body('RileggiPreventivo')?['value'])?['created_at']",
+                              "item/row_version": "@first(body('RileggiPreventivo')?['value'])?['row_version']",
+                              "item/valid_until": "@first(body('RileggiPreventivo')?['value'])?['valid_until']",
+                              "item/created_by": "@first(body('RileggiPreventivo')?['value'])?['created_by']"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "AvvisoConfermato": {
+                          "runAfter": {
+                            "Aggiorna_riga": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "854c8b96-adcc-4999-ae6e-06afa57db380"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_office365",
+                              "operationId": "SendEmailV2",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                            },
+                            "parameters": {
+                              "emailMessage/To": "@variables('IndirizzoCommerciale')",
+                              "emailMessage/Subject": "Confermato: @{outputs('NumeroPreventivo')}",
+                              "emailMessage/Body": "<p>Il preventivo @{outputs('NumeroPreventivo')} è stato confermato. Ora puoi convertirlo in contratto dall'app (Preventivi → Converti in contratto).</p>",
+                              "emailMessage/Importance": "Normal"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "else": {
+                        "actions": {
+                          "AvvisoGiaGestito": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "4046950f-d381-4e54-b2ad-acbb3a9ccdcd"
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connectionName": "shared_office365",
+                                "operationId": "SendEmailV2",
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                              },
+                              "parameters": {
+                                "emailMessage/To": "@variables('IndirizzoCommerciale')",
+                                "emailMessage/Subject": "Nessuna modifica: @{outputs('NumeroPreventivo')} ",
+                                "emailMessage/Body": "<p>Il preventivo era già stato confermato o rifiutato dall'app: non ho cambiato nulla.</p>",
+                                "emailMessage/Importance": "Normal"
+                              },
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          }
+                        }
+                      },
+                      "expression": {
+                        "equals": [
+                          "@equals(first(body('RileggiPreventivo')?['value'])?['status'], 'SENT')",
+                          "@true"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "37962ff4-765a-48e6-9462-6e17ff8463b8"
+                      },
+                      "type": "If"
+                    }
+                  }
+                },
+                "Firma_mancante": {
+                  "case": "Firma mancante",
+                  "actions": {
+                    "Invia_un_messaggio_di_posta_elettronica_(v2)_3": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "ebd84d8e-5d64-4b0c-a811-81d5f2ef57db"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_office365",
+                          "operationId": "SendEmailV2",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                        },
+                        "parameters": {
+                          "emailMessage/To": "@variables('IndirizzoCommerciale')",
+                          "emailMessage/Subject": "Firma mancante: @{outputs('NumeroPreventivo')}",
+                          "emailMessage/Body": "<p>Nel PDF di @{first(body('LeggiEspositore')?['value'])?['legal_name']} manca la firma o il timbro. Ricontatta l'espositore: il preventivo resta \"Inviato\" e lo stand resta riservato fino al @{formatDateTime(first(body('LeggiPreventivo')?['value'])?['valid_until'], 'dd/MM/yyyy')}.</p>",
+                          "emailMessage/Importance": "Normal"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    }
+                  }
+                },
+                "Rifiutato": {
+                  "case": "Rifiutato",
+                  "actions": {
+                    "AncoraInviatoR": {
+                      "actions": {
+                        "Rifiuta": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "52bd6b42-9dc8-4240-82e2-7e6a4b53bf47"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_postgresql",
+                              "operationId": "PatchItem",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+                            },
+                            "parameters": {
+                              "table": "[core].[quote]",
+                              "id": "@first(body('RileggiPreventivo')?['value'])?['quote_id']",
+                              "item/quote_number": "@first(body('RileggiPreventivo')?['value'])?['quote_number']",
+                              "item/edition_id": "@first(body('RileggiPreventivo')?['value'])?['edition_id']",
+                              "item/exhibitor_id": "@first(body('RileggiPreventivo')?['value'])?['exhibitor_id']",
+                              "item/status": "REJECTED",
+                              "item/discount_pct": "@first(body('RileggiPreventivo')?['value'])?['discount_pct']",
+                              "item/list_amount": "@first(body('RileggiPreventivo')?['value'])?['list_amount']",
+                              "item/net_amount": "@first(body('RileggiPreventivo')?['value'])?['net_amount']",
+                              "item/created_at": "@first(body('RileggiPreventivo')?['value'])?['created_at']",
+                              "item/row_version": "@first(body('RileggiPreventivo')?['value'])?['row_version']",
+                              "item/valid_until": "@first(body('RileggiPreventivo')?['value'])?['valid_until']",
+                              "item/created_by": "@first(body('RileggiPreventivo')?['value'])?['created_by']"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "LeggiRighe": {
+                          "runAfter": {
+                            "Rifiuta": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "013b6533-30a8-401a-b75a-7399d369fe7e"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_postgresql",
+                              "operationId": "GetItems",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+                            },
+                            "parameters": {
+                              "table": "[core].[quote_line]",
+                              "$filter": "quote_id eq @{first(body('RileggiPreventivo')?['value'])?['quote_id']}"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "PerOgniRiga": {
+                          "foreach": "@outputs('LeggiRighe')?['body/value']",
+                          "actions": {
+                            "HaStand": {
+                              "actions": {
+                                "LeggiStand": {
+                                  "runAfter": {},
+                                  "metadata": {
+                                    "operationMetadataId": "2baefb23-a036-42a0-bf8b-5214cded302b"
+                                  },
+                                  "type": "OpenApiConnection",
+                                  "inputs": {
+                                    "host": {
+                                      "connectionName": "shared_postgresql",
+                                      "operationId": "GetItem",
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+                                    },
+                                    "parameters": {
+                                      "table": "[core].[stand_edition]",
+                                      "id": "@items('PerOgniRiga')?['stand_edition_id']"
+                                    },
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                },
+                                "StandRiservato": {
+                                  "actions": {
+                                    "LiberaStand": {
+                                      "runAfter": {},
+                                      "metadata": {
+                                        "operationMetadataId": "71bced2b-6c2e-4e6e-bb05-44f33c194f19"
+                                      },
+                                      "type": "OpenApiConnection",
+                                      "inputs": {
+                                        "host": {
+                                          "connectionName": "shared_postgresql",
+                                          "operationId": "PatchItem",
+                                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+                                        },
+                                        "parameters": {
+                                          "table": "[core].[stand_edition]",
+                                          "id": "@items('PerOgniRiga')?['stand_edition_id']",
+                                          "item/stand_id": "@body('LeggiStand')?['stand_id']",
+                                          "item/edition_id": "@body('LeggiStand')?['edition_id']",
+                                          "item/commercial_status": "AVAILABLE",
+                                          "item/row_version": "@body('LeggiStand')?['row_version']",
+                                          "item/reserved_until": "@null"
+                                        },
+                                        "authentication": "@parameters('$authentication')"
+                                      }
+                                    }
+                                  },
+                                  "runAfter": {
+                                    "LeggiStand": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "expression": {
+                                    "equals": [
+                                      "@equals(body('LeggiStand')?['commercial_status'], 'RESERVED')",
+                                      "@true"
+                                    ]
+                                  },
+                                  "metadata": {
+                                    "operationMetadataId": "d72dbbea-ac45-4ced-84e7-2238a995cdf7"
+                                  },
+                                  "type": "If"
+                                }
+                              },
+                              "runAfter": {},
+                              "expression": {
+                                "equals": [
+                                  "@greater(coalesce(items('PerOgniRiga')?['stand_edition_id'], 0), 0)",
+                                  "@true"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "30a450d8-8cba-4dd1-b01c-8c0ed0196eb5"
+                              },
+                              "type": "If"
+                            }
+                          },
+                          "runAfter": {
+                            "LeggiRighe": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "2dcf40a6-c004-44b2-9e24-6108c3f33a80"
+                          },
+                          "type": "Foreach"
+                        },
+                        "Invia_un_messaggio_di_posta_elettronica_(v2)": {
+                          "runAfter": {
+                            "PerOgniRiga": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "854c8b96-adcc-4999-ae6e-06afa57db380"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_office365",
+                              "operationId": "SendEmailV2",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                            },
+                            "parameters": {
+                              "emailMessage/To": "@variables('IndirizzoCommerciale')",
+                              "emailMessage/Subject": "Rifiutato: @{outputs('NumeroPreventivo')}",
+                              "emailMessage/Body": "<p>Il preventivo @{outputs('NumeroPreventivo')} è stato segnato come rifiutato e i suoi stand sono di nuovo disponibili.</p>",
+                              "emailMessage/Importance": "Normal"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "else": {
+                        "actions": {
+                          "AvvisoGiaGestitoR": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "4046950f-d381-4e54-b2ad-acbb3a9ccdcd"
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connectionName": "shared_office365",
+                                "operationId": "SendEmailV2",
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                              },
+                              "parameters": {
+                                "emailMessage/To": "@variables('IndirizzoCommerciale')",
+                                "emailMessage/Subject": "Nessuna modifica: @{outputs('NumeroPreventivo')} ",
+                                "emailMessage/Body": "<p>Il preventivo era già stato confermato o rifiutato dall'app: non ho cambiato nulla.</p>",
+                                "emailMessage/Importance": "Normal"
+                              },
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          }
+                        }
+                      },
+                      "expression": {
+                        "equals": [
+                          "@equals(first(body('RileggiPreventivo')?['value'])?['status'], 'SENT')",
+                          "@true"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "539c0fd8-8fc4-4e14-ad6f-77e7a3ef6b29"
+                      },
+                      "type": "If"
+                    }
+                  }
+                }
+              },
+              "default": {
+                "actions": {}
+              },
+              "expression": "@body('ChiediVerifica')?['SelectedOption']",
+              "metadata": {
+                "operationMetadataId": "642cf48a-e0c4-4b74-ab99-509c8d8f6899"
+              },
+              "type": "Switch"
+            }
+          },
+          "runAfter": {
+            "LeggiPreventivo": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {
+              "AvvisoNonValido": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "3cbbd4ab-9cfa-46e9-bfbb-16d4c3641685"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_office365",
+                    "operationId": "SendEmailV2",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                  },
+                  "parameters": {
+                    "emailMessage/To": "@variables('IndirizzoCommerciale')",
+                    "emailMessage/Subject": "Risposta da verificare: @{outputs('NumeroPreventivo')}",
+                    "emailMessage/Body": "<p>È arrivata una risposta con allegato per il preventivo @{numerooutputs('NumeroPreventivo')}}, &nbsp;ma il preventivo non è in stato \"Inviato\" oppure è scaduto. Nessuna modifica è stata fatta: controlla nell'app.</p>",
+                    "emailMessage/Importance": "Normal"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            }
+          },
+          "expression": {
+            "equals": [
+              "@and(equals(length(body('LeggiPreventivo')?['value']), 1), equals(first(body('LeggiPreventivo')?['value'])?['status'], 'SENT'), greaterOrEquals(first(body('LeggiPreventivo')?['value'])?['valid_until'], formatDateTime(convertFromUtc(utcNow(), 'W. Europe Standard Time'), 'yyyy-MM-dd')))",
+              "@true"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7fa001f1-4e0c-4ad7-94ce-8a94a216b767"
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
