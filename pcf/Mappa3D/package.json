@@ -1,0 +1,24 @@
+{
+  "name": "arcade-mappa3d",
+  "version": "0.0.1",
+  "description": "PROTOTIPO (sandbox) - Mappa 3D di stand e corridoi come componente PCF per Power Apps",
+  "scripts": {
+    "build": "pcf-scripts build",
+    "clean": "pcf-scripts clean",
+    "rebuild": "pcf-scripts rebuild",
+    "start": "pcf-scripts start",
+    "start:watch": "pcf-scripts start watch",
+    "refreshTypes": "pcf-scripts refreshTypes"
+  },
+  "dependencies": {
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.19.31",
+    "@types/powerapps-component-framework": "1.3.18",
+    "@types/three": "0.160.0",
+    "pcf-scripts": "1.51.1",
+    "pcf-start": "1.51.1",
+    "typescript": "4.9.5"
+  }
+}

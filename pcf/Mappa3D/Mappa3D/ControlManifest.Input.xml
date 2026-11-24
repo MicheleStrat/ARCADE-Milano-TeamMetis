@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <!-- Mappa 3D della schermata Live (B-64, B-66): stand disposti come in Planimetria, colorati per persone allo stand. -->
+  <control namespace="Arcade" constructor="Mappa3D" version="0.0.19"
+           display-name-key="Mappa 3D ARCADE"
+           description-key="Padiglioni e stand in 3D colorati per persone allo stand o per corridoi (stima dagli stand), ora per ora"
+           control-type="standard">
+    <external-service-usage enabled="false"></external-service-usage>
+    <property name="DatiJson" display-name-key="Dati (JSON)"
+              description-key="JSON delle righe di live.v_map_stand per un giorno. Vuoto = dati demo."
+              of-type="Multiple" usage="input" required="false" />
+    <property name="Modalita" display-name-key="Modalita"
+              description-key="Non piu usata (compatibilita)"
+              of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="Padiglione" display-name-key="Padiglione"
+              description-key="Codice del padiglione da mostrare (es. P1) oppure tutti"
+              of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="PadiglioneMostrato" display-name-key="Padiglione mostrato"
+              description-key="Codice del padiglione visibile oppure tutti"
+              of-type="SingleLine.Text" usage="output" />
+    <property name="StandSelezionato" display-name-key="Stand selezionato"
+              description-key="Codice dello stand toccato"
+              of-type="SingleLine.Text" usage="output" />
+    <resources>
+      <code path="index.ts" order="1" />
+    </resources>
+  </control>
+</manifest>

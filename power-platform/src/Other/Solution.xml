@@ -94,6 +94,10 @@
     <MissingDependencies>
       <MissingDependency>
         <Required type="66" schemaName="arc_Arcade.Mappa3D" displayName="arc_Arcade.Mappa3D" solution="Active" />
+        <Dependent type="300" schemaName="metis_arcadebackoffice_8cf9a" displayName="ARCADE Back-office" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="66" schemaName="arc_Arcade.Mappa3D" displayName="arc_Arcade.Mappa3D" solution="Active" />
         <Dependent type="300" schemaName="metis_provacancella_26e10" displayName="Prova Cancella" />
       </MissingDependency>
     </MissingDependencies>
