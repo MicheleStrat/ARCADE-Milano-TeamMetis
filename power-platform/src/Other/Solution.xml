@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml version="9.2.26103.165" SolutionPackageVersion="9.2" languagecode="1040" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26103.165" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26104.00153">
+<ImportExportXml version="9.2.26104.157" SolutionPackageVersion="9.2" languagecode="1040" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26104.157" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26104.00157">
   <SolutionManifest>
     <UniqueName>ProgettoMetis</UniqueName>
     <LocalizedNames>

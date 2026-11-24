@@ -48,6 +48,7 @@
             },
             "parameters": {
               "folderPath": "Inbox",
+              "to": "fabrizio.nazzaro@edu-its.it",
               "includeAttachments": true,
               "subjectFilter": "Preventivo PV",
               "importance": "Any",
