@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
   <!-- Pianta 2D della schermata Planimetria (B-45): disposizione indicativa degli stand ricavata dai codici, proporzioni Fiera Milano Rho. -->
-  <control namespace="Arcade" constructor="Pianta2D" version="0.0.12"
+  <control namespace="Arcade" constructor="Pianta2D" version="0.0.14"
            display-name-key="Pianta 2D ARCADE"
            description-key="Pianta indicativa di un padiglione con gli stand colorati per stato commerciale"
            control-type="standard">

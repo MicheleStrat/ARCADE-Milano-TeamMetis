@@ -23,8 +23,10 @@ const STATI: Record<string, { testo: string; bg: string; fg: string }> = {
     SOLD: { testo: "Venduto", bg: "#E0E7FF", fg: "#3730A3" },
     FREE: { testo: "Gratuito", bg: "#CFFAFE", fg: "#155E75" },
     NOT_SELLABLE: { testo: "Non vendibile", bg: "#F1F5F9", fg: "#475569" },
+    // stato calcolato dall'app (B-60): stand AVAILABLE con una prelazione aperta, non e' nel DB
+    PREEMPTION: { testo: "In prelazione", bg: "#F3E8FF", fg: "#6B21A8" },
 };
-const SIMBOLI: Record<string, string> = { AVAILABLE: "✓", RESERVED: "◷", SOLD: "∘", FREE: "∘", NOT_SELLABLE: "—" };
+const SIMBOLI: Record<string, string> = { AVAILABLE: "✓", RESERVED: "◷", SOLD: "∘", FREE: "∘", NOT_SELLABLE: "—", PREEMPTION: "⚑" };
 const POSIZIONI: Record<string, string> = { LINEA: "Linea", ANGOLO: "Angolo", PENISOLA: "Penisola", ISOLA: "Isola" };
 
 function el<K extends keyof SVGElementTagNameMap>(tag: K, attr: Record<string, string | number>, testo?: string): SVGElementTagNameMap[K] {

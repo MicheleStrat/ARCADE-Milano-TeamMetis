@@ -80,6 +80,7 @@
       </Addresses>
     </Publisher>
     <RootComponents>
+      <RootComponent type="29" id="{1579b142-e9e8-f111-84e7-6045bd8c2903}" behavior="0" />
       <RootComponent type="29" id="{16a28e96-5be3-f111-84e8-6045bd8c2903}" behavior="0" />
       <RootComponent type="29" id="{82cc9d5c-a6e1-f111-84e8-6045bd8c2903}" behavior="0" />
       <RootComponent type="29" id="{8b2d65a9-e3e0-f111-84e8-6045bd8c2903}" behavior="0" />

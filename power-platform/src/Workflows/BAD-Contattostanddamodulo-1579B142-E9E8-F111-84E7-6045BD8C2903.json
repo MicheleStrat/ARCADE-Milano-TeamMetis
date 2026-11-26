@@ -1,0 +1,204 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_microsoftforms": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedmicrosoftforms_6a9d6"
+        },
+        "api": {
+          "name": "shared_microsoftforms"
+        }
+      },
+      "shared_postgresql": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedpostgresql_e4b8b"
+        },
+        "api": {
+          "name": "shared_postgresql"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "metis_sharedoffice365_c4e38"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "Email amministrazione (metis_EmailAmministrazione)": {
+          "defaultValue": "fabrizio.nazzaro@edu-its.it",
+          "type": "String",
+          "metadata": {
+            "schemaName": "metis_EmailAmministrazione",
+            "description": "Destinatario delle notifiche per amministrazione e direzione (flussi BAD-05). Valore di test, non del cliente."
+          }
+        }
+      },
+      "triggers": {
+        "Quando_viene_inviata_una_nuova_risposta": {
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "39a6b672-9574-48b4-8ea7-9dcdf42809bf"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_microsoftforms",
+              "operationId": "CreateFormWebhook",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms"
+            },
+            "parameters": {
+              "form_id": "_aos0NbX-U6XC5NQxnkPuuY8_8rQ1zhNuXZd-bTGBi5UNU5BNTU5Mjk2SldHNUFEVzc5RlNTVkE3WC4u"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Recupera_dettagli_della_risposta": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "0ec24022-d239-4547-a0b1-9dd971820828"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_microsoftforms",
+              "operationId": "GetFormResponseById",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms"
+            },
+            "parameters": {
+              "form_id": "_aos0NbX-U6XC5NQxnkPuuY8_8rQ1zhNuXZd-bTGBi5UNU5BNTU5Mjk2SldHNUFEVzc5RlNTVkE3WC4u",
+              "response_id": "@triggerOutputs()?['body/resourceData/responseId']"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "secureData": {
+              "properties": [
+                "inputs",
+                "outputs"
+              ]
+            }
+          }
+        },
+        "Inserisci_contatto": {
+          "runAfter": {
+            "Recupera_dettagli_della_risposta": [
+              "Succeeded"
+            ]
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_postgresql",
+              "operationId": "PostItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_postgresql"
+            },
+            "authentication": "@parameters('$authentication')",
+            "parameters": {
+              "table": "[flow].[lead_inbox]",
+              "item": {
+                "inbox_id": 0,
+                "form_response_id": "@{triggerOutputs()?['body/resourceData/responseId']}",
+                "submitted_at": "@{formatDateTime(outputs('Recupera_dettagli_della_risposta')?['body/submitDate'],'yyyy-MM-ddTHH:mm:ssZ')}",
+                "stand_code": "@{trim(outputs('Recupera_dettagli_della_risposta')?['body/r4d51d8c1bfe24c8a917029e44d604044'])}",
+                "email": "@{toLower(trim(outputs('Recupera_dettagli_della_risposta')?['body/rddb4b3e2a34c47edb0d870096ccd5fe3']))}",
+                "age_band": "@{outputs('Recupera_dettagli_della_risposta')?['body/raa720e4ba1cb475dbd53e2716918a178']}",
+                "interest": "@{outputs('Recupera_dettagli_della_risposta')?['body/r6b80a6bb2c474bb59d6c91e92a78ed73']}",
+                "consent": "@equals(outputs('Recupera_dettagli_della_risposta')?['body/r4a558d980ebe46f5bb2d5b2b9d9f2570'],'Sì')"
+              }
+            }
+          },
+          "runtimeConfiguration": {
+            "secureData": {
+              "properties": [
+                "inputs",
+                "outputs"
+              ]
+            }
+          }
+        },
+        "Inserimento_fallito": {
+          "actions": {
+            "Messaggio_senza_email": {
+              "runAfter": {},
+              "type": "Compose",
+              "inputs": "@{replace(coalesce(body('Inserisci_contatto')?['message'],body('Inserisci_contatto')?['error']?['message'],'errore sconosciuto'),toLower(trim(outputs('Recupera_dettagli_della_risposta')?['body/rddb4b3e2a34c47edb0d870096ccd5fe3'])),'[email nascosta]')}",
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Avvisa_il_team": {
+              "runAfter": {
+                "Messaggio_senza_email": [
+                  "Succeeded"
+                ]
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "authentication": "@parameters('$authentication')",
+                "parameters": {
+                  "emailMessage/To": "@parameters('Email amministrazione (metis_EmailAmministrazione)')",
+                  "emailMessage/Subject": "ARCADE Milano · Contatto stand non registrato (stand @{trim(outputs('Recupera_dettagli_della_risposta')?['body/r4d51d8c1bfe24c8a917029e44d604044'])})",
+                  "emailMessage/Body": "<div style=\"font-family:Segoe UI,Arial;font-size:14px;color:#1E1B4B\"><p>Un contatto lasciato con il modulo degli stand <b>non è stato registrato</b> nel database.</p><table border=\"1\" cellpadding=\"6\" style=\"border-collapse:collapse;font-size:13px;border-color:#E3E6F0\"><tr><td><b>Stand</b></td><td>@{trim(outputs('Recupera_dettagli_della_risposta')?['body/r4d51d8c1bfe24c8a917029e44d604044'])}</td></tr><tr><td><b>ID risposta Forms</b></td><td>@{triggerOutputs()?['body/resourceData/responseId']}</td></tr><tr><td><b>Messaggio del database</b></td><td>@{outputs('Messaggio_senza_email')}</td></tr></table><p style=\"color:#6B7280;font-size:12px\">L'email del visitatore non è inclusa. Messaggio automatico del flusso \"BAD - Contatto stand da modulo\", solution Progetto Metis.</p></div>",
+                  "emailMessage/Importance": "High"
+                }
+              }
+            },
+            "Segna_come_fallito": {
+              "runAfter": {
+                "Avvisa_il_team": [
+                  "Succeeded",
+                  "Failed"
+                ]
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed",
+                "runError": {
+                  "code": "ContattoNonRegistrato",
+                  "message": "Inserimento in flow.lead_inbox rifiutato: vedi la mail al team."
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Inserisci_contatto": [
+              "Failed",
+              "TimedOut"
+            ]
+          },
+          "type": "Scope"
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

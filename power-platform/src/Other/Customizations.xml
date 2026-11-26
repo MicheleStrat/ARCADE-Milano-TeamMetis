@@ -13,6 +13,14 @@
   <EntityDataProviders />
   <CanvasApps />
   <connectionreferences>
+    <connectionreference connectionreferencelogicalname="metis_sharedmicrosoftforms_6a9d6">
+      <connectionreferencedisplayname>Microsoft Forms ProgettoMetis-6a9d6</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_microsoftforms</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <promptingbehavior>0</promptingbehavior>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
     <connectionreference connectionreferencelogicalname="metis_sharedoffice365_c4e38">
       <connectionreferencedisplayname>Office 365 Outlook ProgettoMetis-c4e38</connectionreferencedisplayname>
       <connectorid>/providers/Microsoft.PowerApps/apis/shared_office365</connectorid>
